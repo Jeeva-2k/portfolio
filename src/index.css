@@ -13,7 +13,7 @@
     --color-orange: #ff5c28;
     --color-purple: #7f4dfd;
     
-    --color-lime: #c2ff6d;
+    --color-lime: #ffd60a;
     
     --font-display: 'Cabinet Grotesk', -apple-system, sans-serif;
     --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
@@ -246,7 +246,7 @@ body {
 .launch-btn:hover {
     background: var(--color-lime);
     color: #000000;
-    box-shadow: 0 0 25px rgba(194, 255, 109, 0.4);
+    box-shadow: 0 0 25px rgba(255, 214, 10, 0.4);
 }
 
 /* Mobile Header / Nav (Hidden on Desktop) */
@@ -382,13 +382,13 @@ body {
 .btn-primary {
     background-color: var(--color-lime);
     color: #000000;
-    box-shadow: 0 10px 30px rgba(194, 255, 109, 0.25);
+    box-shadow: 0 10px 30px rgba(255, 214, 10, 0.25);
     border: none;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 15px 35px rgba(194, 255, 109, 0.4);
+    box-shadow: 0 15px 35px rgba(255, 214, 10, 0.4);
 }
 
 .btn-secondary {
@@ -974,7 +974,7 @@ body {
     border-radius: 50%;
     background: var(--bg-dark);
     border: 3px solid var(--color-lime);
-    box-shadow: 0 0 10px rgba(194, 255, 109, 0.4);
+    box-shadow: 0 0 10px rgba(255, 214, 10, 0.4);
     z-index: 2;
 }
 
@@ -1223,7 +1223,7 @@ body {
 
 .form-group input:focus, .form-group textarea:focus {
     border-color: var(--color-lime);
-    box-shadow: 0 0 15px rgba(194, 255, 109, 0.15);
+    box-shadow: 0 0 15px rgba(255, 214, 10, 0.15);
 }
 
 .form-submit-btn {
@@ -1442,7 +1442,7 @@ body {
     }
     
     .mobile-cta:hover {
-        box-shadow: 0 0 25px rgba(194, 255, 109, 0.35);
+        box-shadow: 0 0 25px rgba(255, 214, 10, 0.35);
     }
 
     .hero-section {
