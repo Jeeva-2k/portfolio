@@ -80,13 +80,13 @@ body {
 }
 
 .glow-orange {
-    background: var(--color-orange);
+    background: linear-gradient(to top, #523600 0%, #ffd60a 100%);
     top: 35%;
     right: -250px;
 }
 
 .glow-blue {
-    background: var(--color-blue);
+    background: linear-gradient(to top, #523600 0%, #ffd60a 100%);
     bottom: -150px;
     left: 15%;
 }
