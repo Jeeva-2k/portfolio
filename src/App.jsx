@@ -75,6 +75,16 @@ function App() {
     return () => document.removeEventListener('click', handleCloseDropdown);
   }, []);
 
+  // Track mouse coordinates for spotlight grid effect
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      document.documentElement.style.setProperty('--mouse-x', `${e.clientX}px`);
+      document.documentElement.style.setProperty('--mouse-y', `${e.clientY}px`);
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   const handleDropdownToggle = (e) => {
     e.stopPropagation();
     setDropdownOpen(!dropdownOpen);
@@ -94,6 +104,10 @@ function App() {
 
   return (
     <>
+      {/* Interactive spotlight glow and grid */}
+      <div className="mouse-spotlight-glow"></div>
+      <div className="mouse-spotlight-grid"></div>
+
       {/* Ambient background glows */}
       <div className="glow-container">
         <div className="ambient-glow glow-green"></div>
