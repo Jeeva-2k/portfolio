@@ -27,7 +27,14 @@
     padding: 0;
     box-sizing: border-box;
     scroll-behavior: smooth;
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M0 0V16H3V13H5V11H7V9H9V7H11V5H13V3H16V0H0Z' fill='black'/%3E%3Cpath d='M2 2V12H3V11H5V9H7V7H9V5H11V3H14V2H2Z' fill='%23ffd60a'/%3E%3C/svg%3E") 0 0, auto;
+}
+
+html, body, * {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M0,0 L0,22 L6,16 L12,28 L15,26 L10,15 L18,15 Z' fill='black'/%3E%3Cpath d='M1,2 L1,19 L5,15 L10,25 L12,24 L8,14 L15,14 Z' fill='%23ffd60a'/%3E%3C/svg%3E") 0 0, auto;
+}
+
+a, button, [role="button"], input, textarea, select, .btn, .nav-link, .nav-dropdown, .project-card, .sound-toggle, .about-highlight-card, .skill-card-new, .contact-card-link, .hero-stat-item, .impact-card-new, .mobile-menu-btn {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M0,0 L0,22 L6,16 L12,28 L15,26 L10,15 L18,15 Z' fill='black'/%3E%3Cpath d='M1,2 L1,19 L5,15 L10,25 L12,24 L8,14 L15,14 Z' fill='%23ffd60a'/%3E%3C/svg%3E") 0 0, pointer;
 }
 
 body {
@@ -562,30 +569,36 @@ body {
     height: 280px;
     border-radius: 24px;
     overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, #000 65%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 65%, transparent 100%);
 }
 
 .profile-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    filter: grayscale(100%) 
+            drop-shadow(2px 0 0 #ffffff) 
+            drop-shadow(-2px 0 0 #ffffff) 
+            drop-shadow(0 2px 0 #ffffff) 
+            drop-shadow(0 -2px 0 #ffffff) 
+            drop-shadow(1px 1px 0 #ffffff) 
+            drop-shadow(-1px -1px 0 #ffffff) 
+            drop-shadow(1px -1px 0 #ffffff) 
+            drop-shadow(-1px 1px 0 #ffffff);
+    transition: filter 0.3s ease, transform 0.3s ease;
 }
 
-.frame-border {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border: 2px solid var(--color-lime);
-    border-radius: 24px;
-    pointer-events: none;
-    transform: translate(14px, 14px);
-    z-index: -1;
-    transition: var(--transition);
-}
-
-.about-image-card:hover .frame-border {
-    transform: translate(8px, 8px);
+.about-image-card:hover .profile-img {
+    filter: grayscale(0%) 
+            drop-shadow(2px 0 0 var(--color-lime)) 
+            drop-shadow(-2px 0 0 var(--color-lime)) 
+            drop-shadow(0 2px 0 var(--color-lime)) 
+            drop-shadow(0 -2px 0 var(--color-lime)) 
+            drop-shadow(1px 1px 0 var(--color-lime)) 
+            drop-shadow(-1px -1px 0 var(--color-lime)) 
+            drop-shadow(1px -1px 0 var(--color-lime)) 
+            drop-shadow(-1px 1px 0 var(--color-lime));
 }
 
 .about-tools-box {
@@ -1557,4 +1570,99 @@ body {
         flex-direction: column;
         text-align: center;
     }
+}
+
+/* Figma Interaction Overlay Styles */
+.figma-selection-frame {
+    position: fixed;
+    border: 1.5px solid var(--color-lime);
+    pointer-events: none;
+    z-index: 9999;
+    display: none;
+    transition: opacity 0.15s ease;
+    opacity: 0;
+}
+
+.figma-selection-frame.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Corner handles in Figma style */
+.figma-handle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: #ffffff;
+    border: 1.5px solid var(--color-lime);
+    border-radius: 1px;
+}
+
+.handle-tl { top: -3.5px; left: -3.5px; }
+.handle-tr { top: -3.5px; right: -3.5px; }
+.handle-bl { bottom: -3.5px; left: -3.5px; }
+.handle-br { bottom: -3.5px; right: -3.5px; }
+
+/* Badge for component tag name */
+.figma-badge {
+    position: absolute;
+    top: -20px;
+    left: -1px;
+    background: var(--color-lime);
+    color: #000000;
+    font-family: monospace;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 2px 2px 2px 0px;
+    text-transform: uppercase;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* Drag Dialog Speech Bubble */
+.figma-drag-chip {
+    position: fixed;
+    background: #ffd60a;
+    color: #000000;
+    padding: 8px 14px;
+    border-radius: 100px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    z-index: 10000;
+    pointer-events: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.figma-drag-chip.active {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Add custom transition helper for bouncing back */
+.figma-spring-back {
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+/* Emoji Shaking Animation */
+@keyframes shakeHead {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(-12deg); }
+    75% { transform: rotate(12deg); }
+    100% { transform: rotate(0deg); }
+}
+
+.emoji-shake {
+    display: inline-block;
+    animation: shakeHead 0.25s infinite ease-in-out;
+    font-size: 1.3rem;
 }

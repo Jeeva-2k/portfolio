@@ -85,6 +85,199 @@ function App() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  // Figma Hover Frame and Elastic Drag Interaction
+  useEffect(() => {
+    const targetSelector = '.hero-name, .hero-title, .hero-tagline, .btn, .launch-btn, .hero-stat-item, .about-highlight-card, .project-card, .skill-card-new, .timeline-content, .impact-card-new, .contact-card-link, .contact-form-container, .section-title, .section-tag';
+    
+    const frame = document.getElementById('figma-frame');
+    const badge = document.getElementById('figma-badge');
+    const chip = document.getElementById('figma-chip');
+
+    if (!frame || !badge || !chip) return;
+
+    let hoveredEl = null;
+    let dragEl = null;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let originalTransform = '';
+    let warningText = '';
+
+    const warningPhrases = [
+      "Don't move me! 🛑",
+      "Pixel perfection is locked! 🔒",
+      "Auto Layout says NO! 😤",
+      "Ouch! Designing is hard! ✏️",
+      "Draft mode only! 🛠️",
+      "Please don't break the design! 🥺"
+    ];
+
+    const getBadgeLabel = (el) => {
+      if (el.classList.contains('btn') || el.classList.contains('launch-btn')) return 'Button';
+      if (el.classList.contains('hero-name')) return 'Text (Name)';
+      if (el.classList.contains('hero-title')) return 'Text (Title)';
+      if (el.classList.contains('hero-tagline')) return 'Text (Subtitle)';
+      if (el.classList.contains('section-title')) return 'Heading 2';
+      if (el.classList.contains('section-tag')) return 'Badge';
+      if (el.classList.contains('project-card')) return 'Component (Project Card)';
+      if (el.classList.contains('hero-stat-item')) return 'Stat Card';
+      if (el.classList.contains('about-highlight-card')) return 'Card Highlight';
+      if (el.classList.contains('skill-card-new')) return 'Skill Card';
+      if (el.classList.contains('timeline-content')) return 'Timeline Node';
+      if (el.classList.contains('impact-card-new')) return 'Impact Stat';
+      if (el.classList.contains('contact-card-link')) return 'Contact Pill';
+      if (el.classList.contains('contact-form-container')) return 'Form Instance';
+      return `Frame (${el.tagName.toLowerCase()})`;
+    };
+
+    const updateFramePosition = (el) => {
+      const rect = el.getBoundingClientRect();
+      frame.style.top = `${rect.top}px`;
+      frame.style.left = `${rect.left}px`;
+      frame.style.width = `${rect.width}px`;
+      frame.style.height = `${rect.height}px`;
+    };
+
+    const handleMouseOver = (e) => {
+      if (isDragging) return;
+      const target = e.target.closest(targetSelector);
+      if (target) {
+        hoveredEl = target;
+        updateFramePosition(target);
+        badge.innerText = getBadgeLabel(target);
+        frame.classList.add('active');
+      }
+    };
+
+    const handleMouseOut = (e) => {
+      if (isDragging) return;
+      const target = e.target.closest(targetSelector);
+      if (target && hoveredEl === target) {
+        frame.classList.remove('active');
+        hoveredEl = null;
+      }
+    };
+
+    const handlePointerDown = (e) => {
+      const target = e.target.closest(targetSelector);
+      if (target) {
+        // Prevent default drag shadow and text selection
+        e.preventDefault();
+        dragEl = target;
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        originalTransform = target.style.transform || '';
+        target.classList.remove('figma-spring-back');
+        warningText = warningPhrases[Math.floor(Math.random() * warningPhrases.length)];
+      }
+    };
+
+    const handlePointerMove = (e) => {
+      if (!isDragging || !dragEl) return;
+
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const maxDrag = 60; // Elastic drag boundary
+
+      let finalDx = dx;
+      let finalDy = dy;
+      if (dist > maxDrag) {
+        finalDx = (dx / dist) * maxDrag;
+        finalDy = (dy / dist) * maxDrag;
+      }
+
+      dragEl.style.transform = `translate(${finalDx}px, ${finalDy}px) rotate(${finalDx * 0.08}deg)`;
+      updateFramePosition(dragEl);
+
+      // Position warning chip close to the cursor
+      chip.style.top = `${e.clientY - 45}px`;
+      chip.style.left = `${e.clientX + 15}px`;
+      
+      const shakingEmojis = ["🫨", "🙅‍♂️", "🤦‍♂️", "🤯", "🫣"];
+      const randomEmoji = shakingEmojis[Math.floor(Math.abs(dx + dy) % shakingEmojis.length)];
+      chip.innerHTML = `<span class="emoji-shake">${randomEmoji}</span> ${warningText}`;
+      chip.classList.add('active');
+    };
+
+    const handlePointerUp = () => {
+      if (!isDragging || !dragEl) return;
+
+      // Elastic spring back to original position
+      dragEl.classList.add('figma-spring-back');
+      dragEl.style.transform = originalTransform || 'translate(0px, 0px) rotate(0deg)';
+      chip.classList.remove('active');
+
+      const elToClean = dragEl;
+      const springBackStartTime = performance.now();
+      const duration = 500;
+
+      const syncFrameOnSpringBack = (time) => {
+        const elapsed = time - springBackStartTime;
+        if (elToClean) {
+          updateFramePosition(elToClean);
+        }
+        if (elapsed < duration) {
+          requestAnimationFrame(syncFrameOnSpringBack);
+        } else {
+          elToClean.classList.remove('figma-spring-back');
+          // Clean inline styles if there was no original transform
+          if (!originalTransform) {
+            elToClean.style.transform = '';
+          }
+          // Hide or reset hover frame if cursor has left
+          if (!hoveredEl) {
+            frame.classList.remove('active');
+          } else {
+            updateFramePosition(hoveredEl);
+          }
+        }
+      };
+      requestAnimationFrame(syncFrameOnSpringBack);
+
+      isDragging = false;
+      dragEl = null;
+    };
+
+    // Listen to resize and scroll to keep selection frame synchronized
+    const handleSync = () => {
+      if (hoveredEl) {
+        updateFramePosition(hoveredEl);
+      }
+    };
+
+    const handleDocumentClick = (e) => {
+      const target = e.target.closest(targetSelector);
+      if (!target && !e.target.closest('#figma-frame') && !e.target.closest('#figma-chip')) {
+        frame.classList.remove('active');
+        hoveredEl = null;
+      }
+    };
+
+    document.addEventListener('mouseover', handleMouseOver);
+    document.addEventListener('mouseout', handleMouseOut);
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('click', handleDocumentClick);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('pointercancel', handlePointerUp);
+    window.addEventListener('scroll', handleSync);
+    window.addEventListener('resize', handleSync);
+
+    return () => {
+      document.removeEventListener('mouseover', handleMouseOver);
+      document.removeEventListener('mouseout', handleMouseOut);
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('click', handleDocumentClick);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerUp);
+      window.removeEventListener('scroll', handleSync);
+      window.removeEventListener('resize', handleSync);
+    };
+  }, []);
+
   const handleDropdownToggle = (e) => {
     e.stopPropagation();
     setDropdownOpen(!dropdownOpen);
@@ -117,7 +310,7 @@ function App() {
 
       {/* Main App Container */}
       <div className="app-wrapper">
-        
+
         {/* Header / Floating Navigation Bar */}
         <header className="navbar-container">
           <div className="floating-nav">
@@ -129,7 +322,7 @@ function App() {
                 </svg>
               </div>
             </a>
-            
+
             <nav className="nav-links">
               <a href="#about" className={`nav-link ${activeSection === 'about' ? 'active' : ''}`} onMouseEnter={playHoverSound} onClick={playClickSound}>About</a>
               <a href="#projects" className={`nav-link ${activeSection === 'projects' ? 'active' : ''}`} onMouseEnter={playHoverSound} onClick={playClickSound}>Projects</a>
@@ -148,7 +341,7 @@ function App() {
               </div>
             </nav>
           </div>
-          
+
           <a href="#contact" className="launch-btn" onMouseEnter={playHoverSound} onClick={playClickSound}>Get In Touch</a>
         </header>
 
@@ -180,14 +373,10 @@ function App() {
         {/* 1️⃣ Landing / Hero Section */}
         <section className="hero-section" id="hero">
           <div className="hero-container">
-            <div className="hero-badge" onMouseEnter={playHoverSound}>
-              <span className="pulse-dot"></span>
-              <span>Deloitte Contractor</span>
-            </div>
             <h1 className="hero-name" onMouseEnter={playHoverSound}>Jeevanantham Jayaraj</h1>
             <h2 className="hero-title" onMouseEnter={playHoverSound}>UI/UX & Visual Designer</h2>
             <p className="hero-tagline" onMouseEnter={playHoverSound}>Designing clarity from complexity — crafting high-impact enterprise SaaS platforms & scalable design systems.</p>
-            
+
             <div className="hero-actions">
               <a href="#projects" className="btn btn-primary" onMouseEnter={playHoverSound} onClick={playClickSound}>
                 <span>View My Work</span>
@@ -195,7 +384,7 @@ function App() {
               </a>
               <a href="#contact" className="btn btn-secondary" onMouseEnter={playHoverSound} onClick={playClickSound}>Get In Touch</a>
             </div>
-            
+
             <div className="hero-stats">
               <div className="hero-stat-item" onMouseEnter={playHoverSound}>
                 <span className="hero-stat-num">18+</span>
@@ -224,7 +413,7 @@ function App() {
             <span className="marquee-item"><span className="bullet">•</span> Interaction Design</span>
             <span className="marquee-item"><span className="bullet">•</span> Wireframing</span>
             <span className="marquee-item"><span className="bullet">•</span> Prototyping</span>
-            
+
             {/* Duplicate for seamless looping */}
             <span className="marquee-item"><span className="bullet">•</span> Figma</span>
             <span className="marquee-item"><span className="bullet">•</span> UI/UX Design</span>
@@ -243,14 +432,13 @@ function App() {
             <span className="section-tag">About Me</span>
             <h2 className="section-title">Design with Purpose</h2>
           </div>
-          
+
           <div className="about-grid">
             <div className="about-image-card">
               <div className="image-frame">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=600" alt="Jeevanantham Jayaraj" className="profile-img" />
-                <div className="frame-border"></div>
+                <img src="/profile.png" alt="Jeevanantham Jayaraj" className="profile-img" />
               </div>
-              
+
               <div className="about-tools-box" onMouseEnter={playHoverSound}>
                 <h4>Toolset</h4>
                 <div className="about-tools-tags">
@@ -263,7 +451,7 @@ function App() {
                 </div>
               </div>
             </div>
-            
+
             <div className="about-text-content">
               <p className="about-lead" onMouseEnter={playHoverSound}>
                 I am a UI/UX Designer with 2.5+ years of experience designing enterprise SaaS platforms, dashboards, and modern software applications. Contributed as an external contractor to Deloitte, delivering 18+ projects across enterprise verticals.
@@ -271,7 +459,7 @@ function App() {
               <p className="about-desc" onMouseEnter={playHoverSound}>
                 I specialize in simplifying complex workflows, building scalable design systems, and bridging the gap between design and front-end implementation to deliver clean, user-centric interfaces.
               </p>
-              
+
               <div className="about-highlights-grid">
                 <div className="about-highlight-card" onMouseEnter={playHoverSound}>
                   <div className="highlight-icon">🏢</div>
@@ -299,7 +487,7 @@ function App() {
             <span className="section-tag">Portfolio</span>
             <h2 className="section-title">Projects that made an impact</h2>
           </div>
-          
+
           <div className="projects-container">
             {/* Featured Project (Big Card) */}
             <div className="project-card featured-project" onMouseEnter={playHoverSound} onClick={playClickSound}>
@@ -324,7 +512,7 @@ function App() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="project-info">
                 <span className="project-tag">Enterprise SaaS / UI/UX Design</span>
                 <h3 className="project-title">Deloitte Operations & Data Intelligence Dashboard</h3>
@@ -337,7 +525,7 @@ function App() {
                 </div>
               </div>
             </div>
-            
+
             {/* Grid of Smaller Projects */}
             <div className="projects-grid">
               {/* Project 1 */}
@@ -358,7 +546,7 @@ function App() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Project 2 */}
               <div className="project-card grid-project" onMouseEnter={playHoverSound} onClick={playClickSound}>
                 <div className="project-image-wrapper">
@@ -377,7 +565,7 @@ function App() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Project 3 */}
               <div className="project-card grid-project" onMouseEnter={playHoverSound} onClick={playClickSound}>
                 <div className="project-image-wrapper">
@@ -396,7 +584,7 @@ function App() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Project 4 */}
               <div className="project-card grid-project" onMouseEnter={playHoverSound} onClick={playClickSound}>
                 <div className="project-image-wrapper">
@@ -425,7 +613,7 @@ function App() {
             <span className="section-tag">Expertise</span>
             <h2 className="section-title">What I bring to your team</h2>
           </div>
-          
+
           <div className="skills-grid-new">
             <div className="skill-card-new" onMouseEnter={playHoverSound}>
               <div className="skill-card-icon">⚡</div>
@@ -466,7 +654,7 @@ function App() {
             <span className="section-tag">Career Journey</span>
             <h2 className="section-title">Work & Education Timeline</h2>
           </div>
-          
+
           <div className="timeline">
             {/* Experience Item */}
             <div className="timeline-item">
@@ -488,7 +676,7 @@ function App() {
                 </ul>
               </div>
             </div>
-            
+
             {/* Education Item */}
             <div className="timeline-item">
               <div className="timeline-dot"></div>
@@ -510,7 +698,7 @@ function App() {
             <span className="section-tag">Impact</span>
             <h2 className="section-title">Key Impact & Value</h2>
           </div>
-          
+
           <div className="impact-grid-new">
             <div className="impact-card-new" onMouseEnter={playHoverSound}>
               <span className="impact-stat-number">18+</span>
@@ -541,7 +729,7 @@ function App() {
             <span className="section-tag">Get in Touch</span>
             <h2 className="section-title">Let's build something great</h2>
           </div>
-          
+
           <div className="contact-grid">
             {/* Contact Cards Side */}
             <div className="contact-cards-container">
@@ -552,7 +740,7 @@ function App() {
                   <span className="contact-card-value">jeevanantham2002nkl@gmail.com</span>
                 </div>
               </a>
-              
+
               <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" className="contact-card-link" onMouseEnter={playHoverSound} onClick={playClickSound}>
                 <div className="contact-card-icon">in</div>
                 <div className="contact-card-text">
@@ -560,7 +748,7 @@ function App() {
                   <span className="contact-card-value">linkedin.com/in/jeeva-j1426</span>
                 </div>
               </a>
-              
+
               <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" className="contact-card-link" onMouseEnter={playHoverSound} onClick={playClickSound}>
                 <div className="contact-card-icon">Bē</div>
                 <div className="contact-card-text">
@@ -568,7 +756,7 @@ function App() {
                   <span className="contact-card-value">behance.net/jeevananthamj</span>
                 </div>
               </a>
-              
+
               <a href="tel:+917339042578" className="contact-card-link" onMouseEnter={playHoverSound} onClick={playClickSound}>
                 <div className="contact-card-icon">📞</div>
                 <div className="contact-card-text">
@@ -577,7 +765,7 @@ function App() {
                 </div>
               </a>
             </div>
-            
+
             {/* Contact Form Side */}
             <div className="contact-form-container" onMouseEnter={playHoverSound}>
               <form className="contact-form" onSubmit={handleContactSubmit}>
@@ -612,35 +800,17 @@ function App() {
         </footer>
       </div>
 
-      {/* Floating Sound Toggle Widget */}
-      <div className="sound-toggle-container" onMouseEnter={playHoverSound}>
-        <span className="toggle-text">Sound</span>
-        <button className={`sound-toggle ${!soundEnabled ? 'off' : ''}`} onClick={() => {
-          const nextVal = !soundEnabled;
-          setSoundEnabled(nextVal);
-          if (nextVal) {
-            // Trigger quick click sound to show audio context is active
-            try {
-              const ctx = new (window.AudioContext || window.webkitAudioContext)();
-              const osc = ctx.createOscillator();
-              const gain = ctx.createGain();
-              osc.type = 'sine';
-              osc.frequency.setValueAtTime(440, ctx.currentTime);
-              gain.gain.setValueAtTime(0.015, ctx.currentTime);
-              gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.08);
-              osc.connect(gain);
-              gain.connect(ctx.destination);
-              osc.start();
-              osc.stop(ctx.currentTime + 0.08);
-            } catch (e) {}
-          }
-        }}>
-          <span className="toggle-status">{soundEnabled ? 'On' : 'Off'}</span>
-          <div className="spark-circle">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-          </div>
-        </button>
+      {/* Figma Selection Overlay */}
+      <div className="figma-selection-frame" id="figma-frame">
+        <span className="figma-badge" id="figma-badge">Frame</span>
+        <div className="figma-handle handle-tl"></div>
+        <div className="figma-handle handle-tr"></div>
+        <div className="figma-handle handle-bl"></div>
+        <div className="figma-handle handle-br"></div>
       </div>
+
+      {/* Figma Draggable Floating Chip */}
+      <div className="figma-drag-chip" id="figma-chip">Don't move me! 🛑</div>
     </>
   );
 }
