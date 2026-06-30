@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './App.css';
+import profileImg from './assets/profile.png';
 
 function App() {
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -85,9 +86,33 @@ function App() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  // Scroll reveal animation observer
+  useEffect(() => {
+    const revealElements = document.querySelectorAll('.reveal');
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('reveal-active');
+        } else {
+          entry.target.classList.remove('reveal-active');
+        }
+      });
+    }, {
+      threshold: 0.05,
+      rootMargin: '0px 0px -40px 0px'
+    });
+
+    revealElements.forEach(el => observer.observe(el));
+
+    return () => {
+      revealElements.forEach(el => observer.unobserve(el));
+    };
+  }, []);
+
   // Figma Hover Frame and Elastic Drag Interaction
   useEffect(() => {
-    const targetSelector = '.hero-name, .hero-title, .hero-tagline, .btn, .launch-btn, .hero-stat-item, .about-highlight-card, .project-card, .skill-card-new, .timeline-content, .impact-card-new, .contact-card-link, .contact-form-container, .section-title, .section-tag';
+    const targetSelector = '.hero-name, .hero-title, .hero-tagline, .btn, .launch-btn, .hero-chip, .about-highlight-card, .project-card, .skill-card-new, .timeline-content, .impact-card-new, .contact-card-link, .contact-form-container, .section-title, .section-tag, .inline-photo-card';
     
     const frame = document.getElementById('figma-frame');
     const badge = document.getElementById('figma-badge');
@@ -120,13 +145,14 @@ function App() {
       if (el.classList.contains('section-title')) return 'Heading 2';
       if (el.classList.contains('section-tag')) return 'Badge';
       if (el.classList.contains('project-card')) return 'Component (Project Card)';
-      if (el.classList.contains('hero-stat-item')) return 'Stat Card';
+      if (el.classList.contains('hero-chip')) return 'Chip';
       if (el.classList.contains('about-highlight-card')) return 'Card Highlight';
       if (el.classList.contains('skill-card-new')) return 'Skill Card';
       if (el.classList.contains('timeline-content')) return 'Timeline Node';
       if (el.classList.contains('impact-card-new')) return 'Impact Stat';
       if (el.classList.contains('contact-card-link')) return 'Contact Pill';
       if (el.classList.contains('contact-form-container')) return 'Form Instance';
+      if (el.classList.contains('inline-photo-card')) return 'Frame (Photo)';
       return `Frame (${el.tagName.toLowerCase()})`;
     };
 
@@ -142,6 +168,11 @@ function App() {
       if (isDragging) return;
       const target = e.target.closest(targetSelector);
       if (target) {
+        if (target.classList.contains('inline-photo-card')) {
+          frame.classList.remove('active');
+          hoveredEl = null;
+          return;
+        }
         hoveredEl = target;
         updateFramePosition(target);
         badge.innerText = getBadgeLabel(target);
@@ -159,9 +190,9 @@ function App() {
     };
 
     const handlePointerDown = (e) => {
+      if (e.target.closest('.figma-handle')) return;
       const target = e.target.closest(targetSelector);
       if (target) {
-        // Prevent default drag shadow and text selection
         e.preventDefault();
         dragEl = target;
         isDragging = true;
@@ -179,7 +210,7 @@ function App() {
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const maxDrag = 60; // Elastic drag boundary
+      const maxDrag = 60;
 
       let finalDx = dx;
       let finalDy = dy;
@@ -189,9 +220,10 @@ function App() {
       }
 
       dragEl.style.transform = `translate(${finalDx}px, ${finalDy}px) rotate(${finalDx * 0.08}deg)`;
-      updateFramePosition(dragEl);
+      if (!dragEl.classList.contains('inline-photo-card')) {
+        updateFramePosition(dragEl);
+      }
 
-      // Position warning chip close to the cursor
       chip.style.top = `${e.clientY - 45}px`;
       chip.style.left = `${e.clientX + 15}px`;
       
@@ -204,7 +236,6 @@ function App() {
     const handlePointerUp = () => {
       if (!isDragging || !dragEl) return;
 
-      // Elastic spring back to original position
       dragEl.classList.add('figma-spring-back');
       dragEl.style.transform = originalTransform || 'translate(0px, 0px) rotate(0deg)';
       chip.classList.remove('active');
@@ -215,18 +246,16 @@ function App() {
 
       const syncFrameOnSpringBack = (time) => {
         const elapsed = time - springBackStartTime;
-        if (elToClean) {
+        if (elToClean && !elToClean.classList.contains('inline-photo-card')) {
           updateFramePosition(elToClean);
         }
         if (elapsed < duration) {
           requestAnimationFrame(syncFrameOnSpringBack);
         } else {
           elToClean.classList.remove('figma-spring-back');
-          // Clean inline styles if there was no original transform
           if (!originalTransform) {
             elToClean.style.transform = '';
           }
-          // Hide or reset hover frame if cursor has left
           if (!hoveredEl) {
             frame.classList.remove('active');
           } else {
@@ -240,7 +269,6 @@ function App() {
       dragEl = null;
     };
 
-    // Listen to resize and scroll to keep selection frame synchronized
     const handleSync = () => {
       if (hoveredEl) {
         updateFramePosition(hoveredEl);
@@ -275,6 +303,96 @@ function App() {
       window.removeEventListener('pointercancel', handlePointerUp);
       window.removeEventListener('scroll', handleSync);
       window.removeEventListener('resize', handleSync);
+    };
+  }, []);
+
+  // Built-in Resizable Photo Frame logic
+  useEffect(() => {
+    const card = document.querySelector('.inline-photo-card');
+    if (!card) return;
+
+    const handleTL = card.querySelector('.handle-tl');
+    const handleTR = card.querySelector('.handle-tr');
+    const handleBL = card.querySelector('.handle-bl');
+    const handleBR = card.querySelector('.handle-br');
+
+    let isResizing = false;
+    let resizeStartX = 0;
+    let resizeStartY = 0;
+    let resizeStartWidth = 0;
+    let resizeStartHeight = 0;
+    let direction = '';
+
+    const startResize = (e, dir) => {
+      e.preventDefault();
+      e.stopPropagation();
+      isResizing = true;
+      direction = dir;
+      resizeStartX = e.clientX;
+      resizeStartY = e.clientY;
+      const rect = card.getBoundingClientRect();
+      resizeStartWidth = rect.width;
+      resizeStartHeight = rect.height;
+      card.classList.add('resizing');
+    };
+
+    const handlePointerMove = (e) => {
+      if (!isResizing) return;
+      const dx = e.clientX - resizeStartX;
+      const dy = e.clientY - resizeStartY;
+      
+      let newWidth = resizeStartWidth;
+      let newHeight = resizeStartHeight;
+      
+      if (direction === 'br') {
+        newWidth = resizeStartWidth + dx;
+        newHeight = resizeStartHeight + dy;
+      } else if (direction === 'bl') {
+        newWidth = resizeStartWidth - dx;
+        newHeight = resizeStartHeight + dy;
+      } else if (direction === 'tr') {
+        newWidth = resizeStartWidth + dx;
+        newHeight = resizeStartHeight - dy;
+      } else if (direction === 'tl') {
+        newWidth = resizeStartWidth - dx;
+        newHeight = resizeStartHeight - dy;
+      }
+      
+      newWidth = Math.max(45, Math.min(250, newWidth));
+      newHeight = Math.max(30, Math.min(180, newHeight));
+      
+      card.style.width = `${newWidth}px`;
+      card.style.height = `${newHeight}px`;
+    };
+
+    const handlePointerUp = () => {
+      if (isResizing) {
+        isResizing = false;
+        card.classList.remove('resizing');
+      }
+    };
+
+    const onTLDown = (e) => startResize(e, 'tl');
+    const onTRDown = (e) => startResize(e, 'tr');
+    const onBLDown = (e) => startResize(e, 'bl');
+    const onBRDown = (e) => startResize(e, 'br');
+
+    if (handleTL) handleTL.addEventListener('pointerdown', onTLDown);
+    if (handleTR) handleTR.addEventListener('pointerdown', onTRDown);
+    if (handleBL) handleBL.addEventListener('pointerdown', onBLDown);
+    if (handleBR) handleBR.addEventListener('pointerdown', onBRDown);
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+
+    return () => {
+      if (handleTL) handleTL.removeEventListener('pointerdown', onTLDown);
+      if (handleTR) handleTR.removeEventListener('pointerdown', onTRDown);
+      if (handleBL) handleBL.removeEventListener('pointerdown', onBLDown);
+      if (handleBR) handleBR.removeEventListener('pointerdown', onBRDown);
+
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
     };
   }, []);
 
@@ -316,10 +434,7 @@ function App() {
           <div className="floating-nav">
             <a href="#hero" className="nav-logo" onMouseEnter={playHoverSound} onClick={playClickSound}>
               <div className="logo-box">
-                <svg viewBox="0 0 100 100" className="logo-svg">
-                  <rect width="100" height="100" rx="24" fill="#ff5c28" />
-                  <text x="50" y="65" fontFamily="'Cabinet Grotesk', sans-serif" fontWeight="900" fontSize="52" fill="#000" textAnchor="middle">J</text>
-                </svg>
+                <img src={profileImg} alt="Logo" className="nav-logo-img" />
               </div>
             </a>
 
@@ -348,10 +463,7 @@ function App() {
         {/* Mobile Header */}
         <header className="mobile-header">
           <div className="logo-box">
-            <svg viewBox="0 0 100 100" className="logo-svg">
-              <rect width="100" height="100" rx="24" fill="#ff5c28" />
-              <text x="50" y="65" fontFamily="'Cabinet Grotesk', sans-serif" fontWeight="900" fontSize="52" fill="#000" textAnchor="middle">J</text>
-            </svg>
+            <img src={profileImg} alt="Logo" className="nav-logo-img" />
           </div>
           <button className="mobile-menu-btn" aria-label="Toggle Menu" onMouseEnter={playHoverSound} onClick={() => { playSound(350, 'sine', 0.06); setMobileMenuOpen(!mobileMenuOpen); }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
@@ -373,7 +485,20 @@ function App() {
         {/* 1️⃣ Landing / Hero Section */}
         <section className="hero-section" id="hero">
           <div className="hero-container">
-            <h1 className="hero-name" onMouseEnter={playHoverSound}>Jeevanantham Jayaraj</h1>
+            <h1 className="hero-name" onMouseEnter={playHoverSound}>
+              Hi, I'm <span className="inline-photo-card">
+                <span className="photo-wrapper">
+                  <img src={profileImg} alt="Jeevanantham" className="inline-profile-img" />
+                </span>
+                <div className="photo-figma-frame">
+                  <span className="photo-figma-badge">Photo</span>
+                  <div className="figma-handle handle-tl"></div>
+                  <div className="figma-handle handle-tr"></div>
+                  <div className="figma-handle handle-bl"></div>
+                  <div className="figma-handle handle-br"></div>
+                </div>
+              </span> Jeevanantham
+            </h1>
             <h2 className="hero-title" onMouseEnter={playHoverSound}>UI/UX & Visual Designer</h2>
             <p className="hero-tagline" onMouseEnter={playHoverSound}>Designing clarity from complexity — crafting high-impact enterprise SaaS platforms & scalable design systems.</p>
 
@@ -385,18 +510,15 @@ function App() {
               <a href="#contact" className="btn btn-secondary" onMouseEnter={playHoverSound} onClick={playClickSound}>Get In Touch</a>
             </div>
 
-            <div className="hero-stats">
-              <div className="hero-stat-item" onMouseEnter={playHoverSound}>
-                <span className="hero-stat-num">18+</span>
-                <span className="hero-stat-label">Projects</span>
+            <div className="hero-chips">
+              <div className="hero-chip" onMouseEnter={playHoverSound}>
+                <span className="chip-highlight">18+</span> Projects
               </div>
-              <div className="hero-stat-item" onMouseEnter={playHoverSound}>
-                <span className="hero-stat-num">3+</span>
-                <span className="hero-stat-label">Years Exp.</span>
+              <div className="hero-chip" onMouseEnter={playHoverSound}>
+                <span className="chip-highlight">3+ Yrs</span> Exp.
               </div>
-              <div className="hero-stat-item" onMouseEnter={playHoverSound}>
-                <span className="hero-stat-num">Active</span>
-                <span className="hero-stat-label">Deloitte Contractor</span>
+              <div className="hero-chip" onMouseEnter={playHoverSound}>
+                <span className="pulse-dot"></span> Active Deloitte Contractor
               </div>
             </div>
           </div>
@@ -428,15 +550,15 @@ function App() {
 
         {/* 3️⃣ About Me Section */}
         <section className="about-section" id="about">
-          <div className="section-header">
+          <div className="section-header reveal reveal-slide-up">
             <span className="section-tag">About Me</span>
             <h2 className="section-title">Design with Purpose</h2>
           </div>
 
           <div className="about-grid">
-            <div className="about-image-card">
+            <div className="about-image-card reveal reveal-slide-right">
               <div className="image-frame">
-                <img src="/profile.png" alt="Jeevanantham Jayaraj" className="profile-img" />
+                <img src={profileImg} alt="Jeevanantham Jayaraj" className="profile-img" />
               </div>
 
               <div className="about-tools-box" onMouseEnter={playHoverSound}>
@@ -452,26 +574,26 @@ function App() {
               </div>
             </div>
 
-            <div className="about-text-content">
+            <div className="about-text-content reveal reveal-slide-left">
               <p className="about-lead" onMouseEnter={playHoverSound}>
-                I am a UI/UX Designer with 2.5+ years of experience designing enterprise SaaS platforms, dashboards, and modern software applications. Contributed as an external contractor to Deloitte, delivering 18+ projects across enterprise verticals.
+                I am a UI/UX Designer with 3+ years of experience designing enterprise SaaS platforms, dashboards, and modern software applications. Contributed as an external contractor to Deloitte, delivering 18+ projects across enterprise verticals.
               </p>
               <p className="about-desc" onMouseEnter={playHoverSound}>
                 I specialize in simplifying complex workflows, building scalable design systems, and bridging the gap between design and front-end implementation to deliver clean, user-centric interfaces.
               </p>
 
-              <div className="about-highlights-grid">
-                <div className="about-highlight-card" onMouseEnter={playHoverSound}>
+              <div className="about-highlights-grid reveal-stagger-container">
+                <div className="about-highlight-card reveal reveal-scale" onMouseEnter={playHoverSound}>
                   <div className="highlight-icon">🏢</div>
                   <h3>Deloitte Contractor</h3>
                   <p>Delivered 18+ high-impact enterprise dashboards and apps.</p>
                 </div>
-                <div className="about-highlight-card" onMouseEnter={playHoverSound}>
+                <div className="about-highlight-card reveal reveal-scale" onMouseEnter={playHoverSound}>
                   <div className="highlight-icon">🎨</div>
                   <h3>Full-Spectrum</h3>
                   <p>End-to-end design: UI/UX + Visual + Brand Identity.</p>
                 </div>
-                <div className="about-highlight-card" onMouseEnter={playHoverSound}>
+                <div className="about-highlight-card reveal reveal-scale" onMouseEnter={playHoverSound}>
                   <div className="highlight-icon">🚀</div>
                   <h3>Immediate Joiner</h3>
                   <p>Active and ready to join full-time roles (6 LPA+ budget).</p>
@@ -483,14 +605,14 @@ function App() {
 
         {/* 4️⃣ Selected Work / Projects Section */}
         <section className="projects-section" id="projects">
-          <div className="section-header">
+          <div className="section-header reveal reveal-slide-up">
             <span className="section-tag">Portfolio</span>
             <h2 className="section-title">Projects that made an impact</h2>
           </div>
 
           <div className="projects-container">
             {/* Featured Project (Big Card) */}
-            <div className="project-card featured-project" onMouseEnter={playHoverSound} onClick={playClickSound}>
+            <div className="project-card featured-project reveal reveal-slide-up" onMouseEnter={playHoverSound} onClick={playClickSound}>
               <div className="project-image-wrapper">
                 <div className="project-mockup-bg featured-gradient">
                   <div className="mockup-ui">
@@ -527,9 +649,9 @@ function App() {
             </div>
 
             {/* Grid of Smaller Projects */}
-            <div className="projects-grid">
+            <div className="projects-grid reveal-stagger-container">
               {/* Project 1 */}
-              <div className="project-card grid-project" onMouseEnter={playHoverSound} onClick={playClickSound}>
+              <div className="project-card grid-project reveal reveal-slide-up" onMouseEnter={playHoverSound} onClick={playClickSound}>
                 <div className="project-image-wrapper">
                   <div className="project-mockup-bg proj-orange-grad">
                     <div className="mockup-circle"></div>
@@ -548,7 +670,7 @@ function App() {
               </div>
 
               {/* Project 2 */}
-              <div className="project-card grid-project" onMouseEnter={playHoverSound} onClick={playClickSound}>
+              <div className="project-card grid-project reveal reveal-slide-up" onMouseEnter={playHoverSound} onClick={playClickSound}>
                 <div className="project-image-wrapper">
                   <div className="project-mockup-bg proj-blue-grad">
                     <div className="mockup-card-ui"></div>
@@ -567,7 +689,7 @@ function App() {
               </div>
 
               {/* Project 3 */}
-              <div className="project-card grid-project" onMouseEnter={playHoverSound} onClick={playClickSound}>
+              <div className="project-card grid-project reveal reveal-slide-up" onMouseEnter={playHoverSound} onClick={playClickSound}>
                 <div className="project-image-wrapper">
                   <div className="project-mockup-bg proj-purple-grad">
                     <div className="mockup-lines"></div>
@@ -586,7 +708,7 @@ function App() {
               </div>
 
               {/* Project 4 */}
-              <div className="project-card grid-project" onMouseEnter={playHoverSound} onClick={playClickSound}>
+              <div className="project-card grid-project reveal reveal-slide-up" onMouseEnter={playHoverSound} onClick={playClickSound}>
                 <div className="project-image-wrapper">
                   <div className="project-mockup-bg proj-yellow-grad">
                     <div className="mockup-chart-ui"></div>
@@ -609,38 +731,38 @@ function App() {
 
         {/* 5️⃣ Skills & Tools Section */}
         <section className="skills-section" id="skills">
-          <div className="section-header">
+          <div className="section-header reveal reveal-slide-up">
             <span className="section-tag">Expertise</span>
             <h2 className="section-title">What I bring to your team</h2>
           </div>
 
-          <div className="skills-grid-new">
-            <div className="skill-card-new" onMouseEnter={playHoverSound}>
+          <div className="skills-grid-new reveal-stagger-container">
+            <div className="skill-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
               <div className="skill-card-icon">⚡</div>
               <h3>UI/UX Design</h3>
               <p>Creating intuitive user journeys, interactive wireframes, and pixel-perfect high-fidelity interface layouts.</p>
             </div>
-            <div className="skill-card-new" onMouseEnter={playHoverSound}>
+            <div className="skill-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
               <div className="skill-card-icon">📐</div>
               <h3>Design Systems</h3>
               <p>Developing scalable design libraries, token frameworks, and comprehensive guidelines for multi-brand platforms.</p>
             </div>
-            <div className="skill-card-new" onMouseEnter={playHoverSound}>
+            <div className="skill-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
               <div className="skill-card-icon">🎨</div>
               <h3>Visual & Brand Design</h3>
               <p>Establishing unique brand identities, custom vector assets, typography systems, and modern visual guides.</p>
             </div>
-            <div className="skill-card-new" onMouseEnter={playHoverSound}>
+            <div className="skill-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
               <div className="skill-card-icon">🔧</div>
               <h3>Tools & Software</h3>
               <p>Expert proficiency in Figma, Adobe XD, Photoshop, Illustrator, InDesign, and CSS integration.</p>
             </div>
-            <div className="skill-card-new" onMouseEnter={playHoverSound}>
+            <div className="skill-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
               <div className="skill-card-icon">💻</div>
               <h3>Product Types</h3>
               <p>Tailoring designs for responsive Web apps, enterprise SaaS dashboards, mobile interfaces, and patient portals.</p>
             </div>
-            <div className="skill-card-new" onMouseEnter={playHoverSound}>
+            <div className="skill-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
               <div className="skill-card-icon">🤝</div>
               <h3>Collaboration</h3>
               <p>Bridge developer-designer communication with component specs, Agile coordination, and design-token systems.</p>
@@ -650,14 +772,14 @@ function App() {
 
         {/* 6️⃣ Experience Section */}
         <section className="experience-section" id="experience">
-          <div className="section-header">
+          <div className="section-header reveal reveal-slide-up">
             <span className="section-tag">Career Journey</span>
             <h2 className="section-title">Work & Education Timeline</h2>
           </div>
 
           <div className="timeline">
             {/* Experience Item */}
-            <div className="timeline-item">
+            <div className="timeline-item reveal reveal-slide-up">
               <div className="timeline-dot"></div>
               <div className="timeline-date">Jul 2023 - Present</div>
               <div className="timeline-content" onMouseEnter={playHoverSound}>
@@ -678,7 +800,7 @@ function App() {
             </div>
 
             {/* Education Item */}
-            <div className="timeline-item">
+            <div className="timeline-item reveal reveal-slide-up">
               <div className="timeline-dot"></div>
               <div className="timeline-date">Graduated 2024</div>
               <div className="timeline-content" onMouseEnter={playHoverSound}>
@@ -694,28 +816,28 @@ function App() {
 
         {/* 7️⃣ Key Impact / Highlights Section */}
         <section className="impact-section" id="impact">
-          <div className="section-header">
+          <div className="section-header reveal reveal-slide-up">
             <span className="section-tag">Impact</span>
             <h2 className="section-title">Key Impact & Value</h2>
           </div>
 
-          <div className="impact-grid-new">
-            <div className="impact-card-new" onMouseEnter={playHoverSound}>
+          <div className="impact-grid-new reveal-stagger-container">
+            <div className="impact-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
               <span className="impact-stat-number">18+</span>
               <span className="impact-stat-label">Projects Delivered</span>
               <p>Deploying SaaS platforms and dashboards successfully under tight enterprise requirements.</p>
             </div>
-            <div className="impact-card-new" onMouseEnter={playHoverSound}>
+            <div className="impact-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
               <span className="impact-stat-number">200+</span>
               <span className="impact-stat-label">Components Built</span>
               <p>Standardizing UI components inside Figma to boost workflow scaling and developer velocity.</p>
             </div>
-            <div className="impact-card-new" onMouseEnter={playHoverSound}>
+            <div className="impact-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
               <span className="impact-stat-number">40%</span>
               <span className="impact-stat-label">Workflows Simplified</span>
               <p>Reducing user task flow complexities, resulting in shorter product onboarding times.</p>
             </div>
-            <div className="impact-card-new" onMouseEnter={playHoverSound}>
+            <div className="impact-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
               <span className="impact-stat-number">5+</span>
               <span className="impact-stat-label">AI Tools Integrated</span>
               <p>Leveraging generative tools and prompt engineering to accelerate design iterations.</p>
@@ -725,14 +847,14 @@ function App() {
 
         {/* 8️⃣ Contact Section */}
         <section className="contact-section" id="contact">
-          <div className="section-header">
+          <div className="section-header reveal reveal-slide-up">
             <span className="section-tag">Get in Touch</span>
             <h2 className="section-title">Let's build something great</h2>
           </div>
 
           <div className="contact-grid">
             {/* Contact Cards Side */}
-            <div className="contact-cards-container">
+            <div className="contact-cards-container reveal reveal-slide-right">
               <a href="mailto:jeevanantham2002nkl@gmail.com" className="contact-card-link" onMouseEnter={playHoverSound} onClick={playClickSound}>
                 <div className="contact-card-icon">✉</div>
                 <div className="contact-card-text">
@@ -767,7 +889,7 @@ function App() {
             </div>
 
             {/* Contact Form Side */}
-            <div className="contact-form-container" onMouseEnter={playHoverSound}>
+            <div className="contact-form-container reveal reveal-slide-left" onMouseEnter={playHoverSound}>
               <form className="contact-form" onSubmit={handleContactSubmit}>
                 <div className="form-group">
                   <label htmlFor="form-name">Name</label>
