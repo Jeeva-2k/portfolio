@@ -112,7 +112,7 @@ function App() {
 
   // Figma Hover Frame and Elastic Drag Interaction
   useEffect(() => {
-    const targetSelector = '.hero-name, .hero-title, .hero-tagline, .btn, .launch-btn, .hero-chip, .about-highlight-card, .project-card, .skill-card-new, .timeline-content, .impact-card-new, .contact-card-link, .contact-form-container, .section-title, .section-tag, .inline-photo-card';
+    const targetSelector = '.hero-name, .hero-title, .hero-tagline, .hero-section .btn, .hero-chip, .inline-photo-card';
     
     const frame = document.getElementById('figma-frame');
     const badge = document.getElementById('figma-badge');
@@ -396,6 +396,34 @@ function App() {
     };
   }, []);
 
+  // Section Header Underline Scroll Progress Hook
+  useEffect(() => {
+    const handleScrollProgress = () => {
+      const headers = document.querySelectorAll('.section-header');
+      headers.forEach(header => {
+        const rect = header.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        
+        let progress = 0;
+        if (rect.top < viewportHeight) {
+          progress = (viewportHeight - rect.top) / viewportHeight;
+        }
+        
+        // Clamp to a safe max of 1.8 to prevent overflow, allowing continuous growth
+        progress = Math.max(0, Math.min(1.8, progress));
+        header.style.setProperty('--scroll-progress', progress);
+      });
+    };
+
+    window.addEventListener('scroll', handleScrollProgress, { passive: true });
+    handleScrollProgress();
+
+    return () => {
+      window.removeEventListener('scroll', handleScrollProgress);
+    };
+  }, []);
+
+
   const handleDropdownToggle = (e) => {
     e.stopPropagation();
     setDropdownOpen(!dropdownOpen);
@@ -556,47 +584,166 @@ function App() {
           </div>
 
           <div className="about-grid">
-            <div className="about-image-card reveal reveal-slide-right">
-              <div className="image-frame">
-                <img src={profileImg} alt="Jeevanantham Jayaraj" className="profile-img" />
+            {/* Left Card: Profile Passport */}
+            <div className="about-profile-card reveal reveal-slide-right" onMouseEnter={playHoverSound}>
+              <div className="profile-badge-active">
+                <span className="pulse-dot"></span>
+                <span>Active Deloitte Contractor</span>
+              </div>
+              
+              <div className="profile-image-container">
+                <div className="profile-image-ring"></div>
+                <img src={profileImg} alt="Jeevanantham Jayaraj" className="profile-avatar" />
               </div>
 
-              <div className="about-tools-box" onMouseEnter={playHoverSound}>
-                <h4>Toolset</h4>
-                <div className="about-tools-tags">
-                  <span className="tool-tag">Figma</span>
-                  <span className="tool-tag">Adobe XD</span>
-                  <span className="tool-tag">Photoshop</span>
-                  <span className="tool-tag">Illustrator</span>
-                  <span className="tool-tag">InDesign</span>
-                  <span className="tool-tag">Tokens Studio</span>
+              <div className="profile-meta">
+                <h3>Jeevanantham Jayaraj</h3>
+                <p className="profile-role">UI/UX & Visual Designer</p>
+                <div className="profile-info-pill-container">
+                  <span className="profile-pill">📍 Namakkal, India</span>
+                  <span className="profile-pill">💼 3+ Years Exp</span>
+                </div>
+              </div>
+
+              <div className="profile-skills-box">
+                <h4>Primary Stack</h4>
+                <div className="skill-tags-group">
+                  <span className="skill-tag-badge figma" title="Figma">
+                    <svg className="tech-logo" viewBox="0 0 12 18" width="12" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '2px'}}>
+                      <path d="M3 0C1.35 0 0 1.35 0 3C0 4.65 1.35 6 3 6H6V0H3Z" fill="#F24E1E"/>
+                      <path d="M3 6C1.35 6 0 7.35 0 9C0 10.65 1.35 12 3 12H6V6H3Z" fill="#A259FF"/>
+                      <path d="M3 12C1.35 12 0 13.35 0 15C0 16.65 1.35 18 3 18C4.65 18 6 16.65 6 15V12H3Z" fill="#1ABC9C"/>
+                      <path d="M9 6C10.65 6 12 7.35 12 9C12 10.65 10.65 12 9 12C7.35 12 6 10.65 6 9C6 7.35 7.35 6 9 6Z" fill="#0ACF83"/>
+                      <path d="M9 0C10.65 0 12 1.35 12 3C12 4.65 10.65 6 9 6H6V0H9Z" fill="#FF7262"/>
+                    </svg>
+                    Figma
+                  </span>
+                  
+                  <span className="skill-tag-badge adobe-xd" title="Adobe XD">
+                    <svg className="tech-logo" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '2px'}}>
+                      <rect width="24" height="24" rx="4" fill="#2E001F"/>
+                      <rect x="1" y="1" width="22" height="22" rx="3" fill="none" stroke="#FF2BC2" strokeWidth="1.5"/>
+                      <text x="12" y="15.5" fontSize="10.5" fontWeight="900" fontFamily="-apple-system, sans-serif" fill="#FF61D5" textAnchor="middle">Xd</text>
+                    </svg>
+                    Adobe XD
+                  </span>
+                  
+                  <span className="skill-tag-badge illustrator" title="Illustrator">
+                    <svg className="tech-logo" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '2px'}}>
+                      <rect width="24" height="24" rx="4" fill="#261300"/>
+                      <rect x="1" y="1" width="22" height="22" rx="3" fill="none" stroke="#FF9A00" strokeWidth="1.5"/>
+                      <text x="12" y="15.5" fontSize="10.5" fontWeight="900" fontFamily="-apple-system, sans-serif" fill="#FFB033" textAnchor="middle">Ai</text>
+                    </svg>
+                    Illustrator
+                  </span>
+                  
+                  <span className="skill-tag-badge photoshop" title="Photoshop">
+                    <svg className="tech-logo" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '2px'}}>
+                      <rect width="24" height="24" rx="4" fill="#001C2B"/>
+                      <rect x="1" y="1" width="22" height="22" rx="3" fill="none" stroke="#31A8FF" strokeWidth="1.5"/>
+                      <text x="12" y="15.5" fontSize="10.5" fontWeight="900" fontFamily="-apple-system, sans-serif" fill="#70C5FF" textAnchor="middle">Ps</text>
+                    </svg>
+                    Photoshop
+                  </span>
+
+                  <span className="skill-tag-badge premiere-pro" title="Premiere Pro">
+                    <svg className="tech-logo" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '2px'}}>
+                      <rect width="24" height="24" rx="4" fill="#14002B"/>
+                      <rect x="1" y="1" width="22" height="22" rx="3" fill="none" stroke="#EA77FF" strokeWidth="1.5"/>
+                      <text x="12" y="15.5" fontSize="10.5" fontWeight="900" fontFamily="-apple-system, sans-serif" fill="#F3B3FF" textAnchor="middle">Pr</text>
+                    </svg>
+                    Premiere Pro
+                  </span>
+
+                  <span className="skill-tag-badge indesign" title="InDesign">
+                    <svg className="tech-logo" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '2px'}}>
+                      <rect width="24" height="24" rx="4" fill="#2B0018"/>
+                      <rect x="1" y="1" width="22" height="22" rx="3" fill="none" stroke="#FF1A8B" strokeWidth="1.5"/>
+                      <text x="12" y="15.5" fontSize="10.5" fontWeight="900" fontFamily="-apple-system, sans-serif" fill="#FF70B5" textAnchor="middle">Id</text>
+                    </svg>
+                    InDesign
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div className="about-text-content reveal reveal-slide-left">
-              <p className="about-lead" onMouseEnter={playHoverSound}>
-                I am a UI/UX Designer with 3+ years of experience designing enterprise SaaS platforms, dashboards, and modern software applications. Contributed as an external contractor to Deloitte, delivering 18+ projects across enterprise verticals.
-              </p>
-              <p className="about-desc" onMouseEnter={playHoverSound}>
-                I specialize in simplifying complex workflows, building scalable design systems, and bridging the gap between design and front-end implementation to deliver clean, user-centric interfaces.
-              </p>
+            {/* Right Card: Bio and Core Pillars */}
+            <div className="about-content-card reveal reveal-slide-left">
+              <div className="about-bio-card">
+                <p className="about-lead-text">
+                  I am a UI/UX Designer with a <strong>Computer Science Engineering</strong> background, specializing in translating complex enterprise workflows into elegant, functional SaaS dashboards.
+                </p>
+                <p className="about-body-text">
+                  Through my engagement as a Deloitte contractor under The Cloud Company, I have designed and delivered 18+ high-impact digital products. I combine user-centric visual design with a technical engineering mindset, using design tokens and modular systems to bridge design and clean front-end execution.
+                </p>
+              </div>
 
-              <div className="about-highlights-grid reveal-stagger-container">
-                <div className="about-highlight-card reveal reveal-scale" onMouseEnter={playHoverSound}>
-                  <div className="highlight-icon">🏢</div>
-                  <h3>Deloitte Contractor</h3>
-                  <p>Delivered 18+ high-impact enterprise dashboards and apps.</p>
+              <h4 className="about-subheading">Core Pillars & Value</h4>
+              <div className="pillars-container reveal-stagger-container">
+                <div className="pillar-item reveal reveal-scale" onMouseEnter={playHoverSound}>
+                  <div className="pillar-num">01</div>
+                  <div className="pillar-details">
+                    <h5>Deloitte Engagement</h5>
+                    <p>Designed and scaled 18+ enterprise dashboard projects, delivering solutions that streamline complex data and operational workflows.</p>
+                  </div>
                 </div>
-                <div className="about-highlight-card reveal reveal-scale" onMouseEnter={playHoverSound}>
-                  <div className="highlight-icon">🎨</div>
-                  <h3>Full-Spectrum</h3>
-                  <p>End-to-end design: UI/UX + Visual + Brand Identity.</p>
+                
+                <div className="pillar-item reveal reveal-scale" onMouseEnter={playHoverSound}>
+                  <div className="pillar-num">02</div>
+                  <div className="pillar-details">
+                    <h5>Scalable Design Systems</h5>
+                    <p>Architecting multi-brand design tokens and modular component libraries that ensure consistency and speed up dev cycles.</p>
+                  </div>
                 </div>
-                <div className="about-highlight-card reveal reveal-scale" onMouseEnter={playHoverSound}>
-                  <div className="highlight-icon">🚀</div>
-                  <h3>Immediate Joiner</h3>
-                  <p>Active and ready to join full-time roles (6 LPA+ budget).</p>
+
+                <div className="pillar-item reveal reveal-scale" onMouseEnter={playHoverSound}>
+                  <div className="pillar-num">03</div>
+                  <div className="pillar-details">
+                    <h5>Interaction & UX Design</h5>
+                    <p>Crafting high-fidelity interactive prototypes, user journey flows, and responsive layouts that optimize task efficiency.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Full Width Design Philosophy block (within the About section) */}
+          <div className="about-philosophy-container reveal reveal-slide-up" onMouseEnter={playHoverSound}>
+            <div className="philosophy-header">
+              <h3 className="philosophy-title">My Design Philosophy</h3>
+              <p className="philosophy-subtitle">A structured, engineering-friendly workflow from user discovery to production handoff.</p>
+            </div>
+            
+            <div className="workflow-steps-full">
+              <div className="workflow-step-new">
+                <div className="step-num-badge">01</div>
+                <div className="step-content">
+                  <h4>Discover & Frame</h4>
+                  <p>Analyzing technical documentation, business objectives, and user workflows to map constraints and scope details.</p>
+                </div>
+              </div>
+
+              <div className="workflow-step-new">
+                <div className="step-num-badge">02</div>
+                <div className="step-content">
+                  <h4>Wireframe & Map</h4>
+                  <p>Constructing interactive user flows and low-fidelity prototypes to test key application layout structures early.</p>
+                </div>
+              </div>
+
+              <div className="workflow-step-new">
+                <div className="step-num-badge">03</div>
+                <div className="step-content">
+                  <h4>Design & Tokenize</h4>
+                  <p>Building cohesive layout frames in Figma integrated with Design Tokens for multi-brand consistency and integrity.</p>
+                </div>
+              </div>
+
+              <div className="workflow-step-new">
+                <div className="step-num-badge">04</div>
+                <div className="step-content">
+                  <h4>Verify & Handoff</h4>
+                  <p>Providing interactive prototype specs, design guidelines, and token maps to guarantee developer alignment.</p>
                 </div>
               </div>
             </div>
