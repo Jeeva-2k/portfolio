@@ -742,7 +742,7 @@ body {
 .about-grid {
     display: grid;
     grid-template-columns: 0.85fr 2fr;
-    gap: 3.5rem;
+    gap: 2.5rem;
     align-items: start;
 }
 
@@ -761,6 +761,10 @@ body {
     -webkit-backdrop-filter: blur(24px);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
     transition: var(--transition);
+    width: 100%;
+    max-width: 310px;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 .about-profile-card:hover {
@@ -2012,11 +2016,21 @@ body {
 
     .about-grid {
         grid-template-columns: 1fr;
-        gap: 3.5rem;
+        gap: 2rem;
     }
 
     .about-profile-card {
         order: -1;
+    }
+
+    .about-philosophy-container {
+        padding: 2rem;
+        margin-top: 3rem;
+    }
+
+    .workflow-steps-full {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
     }
 
     .skills-grid-new {
@@ -2034,6 +2048,32 @@ body {
 }
 
 @media (max-width: 600px) {
+    .about-grid {
+        gap: 1.5rem;
+    }
+
+    .about-profile-card {
+        padding: 1.25rem;
+    }
+
+    .about-bio-card {
+        padding: 1.25rem;
+    }
+
+    .about-philosophy-container {
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .workflow-steps-full {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .workflow-step-new {
+        padding: 1.25rem;
+    }
+
     .skills-grid-new {
         grid-template-columns: 1fr;
     }
