@@ -762,7 +762,7 @@ body {
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
     transition: var(--transition);
     width: 100%;
-    max-width: 310px;
+    max-width: 19.375rem;
     margin: 0 auto;
     box-sizing: border-box;
 }
@@ -2315,4 +2315,65 @@ body {
 
 .reveal-stagger-container .reveal-active:nth-child(6) {
     transition-delay: 0.6s;
+}
+
+/* 🖥️ Responsive Scaling for Wide Screens & 32" Monitors */
+@media (min-width: 1400px) {
+    html {
+        font-size: 17px;
+    }
+    
+    .navbar-container,
+    .about-section,
+    .projects-section,
+    .skills-section,
+    .experience-section,
+    .impact-section,
+    .contact-section {
+        max-width: 1240px;
+    }
+    
+    .hero-container {
+        max-width: 1100px;
+    }
+}
+
+@media (min-width: 1900px) {
+    html {
+        font-size: 18px;
+    }
+    
+    .navbar-container,
+    .about-section,
+    .projects-section,
+    .skills-section,
+    .experience-section,
+    .impact-section,
+    .contact-section {
+        max-width: 1380px;
+    }
+    
+    .hero-container {
+        max-width: 1200px;
+    }
+}
+
+@media (min-width: 2500px) {
+    html {
+        font-size: 19.5px;
+    }
+    
+    .navbar-container,
+    .about-section,
+    .projects-section,
+    .skills-section,
+    .experience-section,
+    .impact-section,
+    .contact-section {
+        max-width: 1560px;
+    }
+    
+    .hero-container {
+        max-width: 1350px;
+    }
 }
