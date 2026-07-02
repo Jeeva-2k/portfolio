@@ -708,14 +708,14 @@ function App() {
           </div>
 
           {/* Full Width Design Philosophy block (within the About section) */}
-          <div className="about-philosophy-container reveal reveal-slide-up" onMouseEnter={playHoverSound}>
-            <div className="philosophy-header">
+          <div className="about-philosophy-container" onMouseEnter={playHoverSound}>
+            <div className="philosophy-header reveal reveal-slide-up">
               <h3 className="philosophy-title">My Design Philosophy</h3>
               <p className="philosophy-subtitle">A structured, engineering-friendly workflow from user discovery to production handoff.</p>
             </div>
             
-            <div className="workflow-steps-full">
-              <div className="workflow-step-new">
+            <div className="workflow-steps-full reveal-stagger-container">
+              <div className="workflow-step-new reveal reveal-slide-up">
                 <div className="step-num-badge">01</div>
                 <div className="step-content">
                   <h4>Discover & Frame</h4>
@@ -723,7 +723,7 @@ function App() {
                 </div>
               </div>
 
-              <div className="workflow-step-new">
+              <div className="workflow-step-new reveal reveal-slide-up">
                 <div className="step-num-badge">02</div>
                 <div className="step-content">
                   <h4>Wireframe & Map</h4>
@@ -731,7 +731,7 @@ function App() {
                 </div>
               </div>
 
-              <div className="workflow-step-new">
+              <div className="workflow-step-new reveal reveal-slide-up">
                 <div className="step-num-badge">03</div>
                 <div className="step-content">
                   <h4>Design & Tokenize</h4>
@@ -739,7 +739,7 @@ function App() {
                 </div>
               </div>
 
-              <div className="workflow-step-new">
+              <div className="workflow-step-new reveal reveal-slide-up">
                 <div className="step-num-badge">04</div>
                 <div className="step-content">
                   <h4>Verify & Handoff</h4>
