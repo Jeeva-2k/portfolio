@@ -605,6 +605,17 @@ function App() {
                 </div>
               </div>
 
+              <div className="profile-highlights">
+                <div className="highlight-item">
+                  <span className="highlight-label">Focus</span>
+                  <span className="highlight-value">SaaS, Dashboards, Systems</span>
+                </div>
+                <div className="highlight-item">
+                  <span className="highlight-label">Background</span>
+                  <span className="highlight-value">B.E. Computer Science</span>
+                </div>
+              </div>
+
               <div className="profile-skills-box">
                 <h4>Primary Stack</h4>
                 <div className="skill-tags-group">
