@@ -765,6 +765,7 @@ body {
     max-width: 19.375rem;
     margin: 0 auto;
     box-sizing: border-box;
+    align-self: stretch;
 }
 
 .about-profile-card:hover {
@@ -870,6 +871,7 @@ body {
     width: 100%;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     padding-top: 1.5rem;
+    margin-top: auto;
     text-align: left;
 }
 
