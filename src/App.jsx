@@ -607,12 +607,16 @@ function App() {
 
               <div className="profile-highlights">
                 <div className="highlight-item">
-                  <span className="highlight-label">Focus</span>
-                  <span className="highlight-value">SaaS, Dashboards, Systems</span>
+                  <span className="highlight-label">Specialty</span>
+                  <span className="highlight-value">Enterprise SaaS & Systems</span>
                 </div>
                 <div className="highlight-item">
-                  <span className="highlight-label">Background</span>
-                  <span className="highlight-value">B.E. Computer Science</span>
+                  <span className="highlight-label">Mindset</span>
+                  <span className="highlight-value">Developer-Aligned UX</span>
+                </div>
+                <div className="highlight-item">
+                  <span className="highlight-label">Impact</span>
+                  <span className="highlight-value">18+ Shipped Products</span>
                 </div>
               </div>
 
