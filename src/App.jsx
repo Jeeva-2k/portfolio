@@ -600,8 +600,20 @@ function App() {
                 <h3>Jeevanantham Jayaraj</h3>
                 <p className="profile-role">UI/UX & Visual Designer</p>
                 <div className="profile-info-pill-container">
-                  <span className="profile-pill">📍 Namakkal, India</span>
-                  <span className="profile-pill">💼 3+ Years Exp</span>
+                  <span className="profile-pill">
+                    <svg className="profile-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    Namakkal, India
+                  </span>
+                  <span className="profile-pill">
+                    <svg className="profile-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                    3+ Years Exp
+                  </span>
                 </div>
               </div>
 
