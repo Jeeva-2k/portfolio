@@ -1,12 +1,133 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import profileImg from './assets/profile.png';
+
+const skillsList = [
+  {
+    fileName: 'UIUX.json',
+    tag: 'Design Core',
+    title: 'UI/UX Design',
+    desc: 'Crafting intuitive user journeys, wireframes, and pixel-perfect high-fidelity layouts.',
+    chips: ['Figma', 'Wireframing', 'User Flows'],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="9" y1="3" x2="9" y2="21"></line>
+        <line x1="9" y1="9" x2="21" y2="9"></line>
+        <line x1="9" y1="15" x2="21" y2="15"></line>
+      </svg>
+    ),
+    theme: 'theme-blue'
+  },
+  {
+    fileName: 'System.tokens',
+    tag: 'Design Operations',
+    title: 'Design Systems',
+    desc: 'Developing scalable UI libraries, token frameworks, and multi-brand component standards.',
+    chips: ['Tokens Studio', 'Documentation', 'Variables'],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+        <polyline points="2 17 12 22 22 17"></polyline>
+        <polyline points="2 12 12 17 22 12"></polyline>
+      </svg>
+    ),
+    theme: 'theme-lime'
+  },
+  {
+    fileName: 'Brand.svg',
+    tag: 'Visual Language',
+    title: 'Visual & Brand',
+    desc: 'Establishing unique brand identities, custom vector assets, and consistent guidelines.',
+    chips: ['Illustrator', 'Branding', 'Vector Art'],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <circle cx="12" cy="10" r="3"></circle>
+        <circle cx="8" cy="14" r="2"></circle>
+        <circle cx="16" cy="14" r="2"></circle>
+      </svg>
+    ),
+    theme: 'theme-purple'
+  },
+  {
+    fileName: 'Tools.conf',
+    tag: 'Stack & Tools',
+    title: 'Tools & Software',
+    desc: 'Expert-level proficiency across industry-standard design tools and software packages.',
+    chips: ['Figma', 'Adobe XD', 'Photoshop', 'Illustrator'],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+      </svg>
+    ),
+    theme: 'theme-orange'
+  },
+  {
+    fileName: 'Products.tsx',
+    tag: 'Target Formats',
+    title: 'Product Types',
+    desc: 'Designing responsive interfaces for web applications, enterprise SaaS platforms, and mobile apps.',
+    chips: ['Web Apps', 'SaaS Dashboards', 'iOS & Android'],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+        <line x1="8" y1="21" x2="16" y2="21"></line>
+        <line x1="12" y1="17" x2="12" y2="21"></line>
+      </svg>
+    ),
+    theme: 'theme-cyan'
+  },
+  {
+    fileName: 'Handoff.yaml',
+    tag: 'Handoff & Ops',
+    title: 'Collaboration',
+    desc: 'Bridging developer-designer communication with complete specs and design-token mapping.',
+    chips: ['Specs Ready', 'Agile Handoff', 'Tokens Map'],
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+    ),
+    theme: 'theme-green'
+  }
+];
 
 function App() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
+  const [activeSkillIndex, setActiveSkillIndex] = useState(0);
+  const [currentTime, setCurrentTime] = useState('');
+  const [formStatus, setFormStatus] = useState('idle'); // 'idle' | 'sending' | 'success' | 'error'
+  const [formMessage, setFormMessage] = useState('');
+  const skillsWrapperRef = useRef(null);
+
+  // Calculate experience duration dynamically from July 2023
+  const calculateExperience = () => {
+    const startDate = new Date(2023, 6); // July is index 6 (0-indexed)
+    const today = new Date();
+    
+    let years = today.getFullYear() - startDate.getFullYear();
+    let months = today.getMonth() - startDate.getMonth();
+    
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+    
+    if (years === 0) {
+      return `${months} mo${months > 1 ? 's' : ''}`;
+    } else if (months === 0) {
+      return `${years} yr${years > 1 ? 's' : ''}`;
+    } else {
+      return `${years} yr${years > 1 ? 's' : ''} ${months} mo${months > 1 ? 's' : ''}`;
+    }
+  };
 
   // Audio playing utility
   const playSound = (frequency = 400, type = 'sine', duration = 0.05) => {
@@ -35,6 +156,55 @@ function App() {
   // Hover and Click Sound helper functions
   const playHoverSound = () => playSound(320, 'triangle', 0.03);
   const playClickSound = () => playSound(550, 'sine', 0.08);
+
+  // Timezone Live Clock
+  useEffect(() => {
+    const updateTime = () => {
+      const options = { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+      setCurrentTime(new Intl.DateTimeFormat('en-US', options).format(new Date()));
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Scroll-driven active index transition for pinned Skills section
+  useEffect(() => {
+    const handleSkillsScroll = () => {
+      if (!skillsWrapperRef.current) return;
+      const rect = skillsWrapperRef.current.getBoundingClientRect();
+      const wrapperHeight = rect.height;
+      const viewportHeight = window.innerHeight;
+      
+      // Calculate scroll progress through the wrapper
+      const start = window.scrollY + rect.top;
+      const end = start + wrapperHeight - viewportHeight;
+      const currentScroll = window.scrollY;
+
+      if (currentScroll < start) {
+        setActiveSkillIndex(0);
+      } else if (currentScroll > end) {
+        setActiveSkillIndex(skillsList.length - 1);
+      } else {
+        const progress = (currentScroll - start) / (end - start);
+        // Map progress [0, 1] to index [0, skillsList.length - 1]
+        const rawIndex = Math.floor(progress * skillsList.length);
+        const index = Math.max(0, Math.min(rawIndex, skillsList.length - 1));
+        
+        setActiveSkillIndex((prevIndex) => {
+          // Play click sound only when index changes
+          if (prevIndex !== index) {
+            playClickSound();
+          }
+          return index;
+        });
+      }
+    };
+
+    window.addEventListener('scroll', handleSkillsScroll);
+    return () => window.removeEventListener('scroll', handleSkillsScroll);
+  }, []);
+
 
   // Force landing page scroll behavior on mount
   useEffect(() => {
@@ -423,6 +593,44 @@ function App() {
     };
   }, []);
 
+  // 3D Stacking Cards Scroll / Carousel effect
+  useEffect(() => {
+    const cards = document.querySelectorAll('.skill-card-stack');
+    if (!cards.length) return;
+
+    const handleStackScroll = () => {
+      const stickyTop = 150; 
+      
+      cards.forEach((card, index) => {
+        const rect = card.getBoundingClientRect();
+        
+        if (rect.top <= stickyTop) {
+          const offset = stickyTop - rect.top;
+          const cardHeight = rect.height || 380;
+          const progress = Math.min(Math.max(offset / cardHeight, 0), 1);
+          
+          const scale = 1 - progress * 0.06;
+          const brightness = 1 - progress * 0.45;
+          const translateY = -progress * 20;
+          
+          card.style.transform = `scale(${scale}) translateY(${translateY}px)`;
+          card.style.opacity = `${1 - progress * 0.1}`;
+          card.style.filter = `brightness(${brightness})`;
+        } else {
+          card.style.transform = 'scale(1) translateY(0px)';
+          card.style.opacity = '1';
+          card.style.filter = 'brightness(1)';
+        }
+      });
+    };
+
+    window.addEventListener('scroll', handleStackScroll, { passive: true });
+    handleStackScroll();
+    
+    return () => {
+      window.removeEventListener('scroll', handleStackScroll);
+    };
+  }, []);
 
   const handleDropdownToggle = (e) => {
     e.stopPropagation();
@@ -430,15 +638,71 @@ function App() {
     playSound(450, 'triangle', 0.04);
   };
 
-  const handleContactSubmit = (e) => {
+  const handleFormFocus = () => {
+    if (formStatus !== 'sending') {
+      setFormStatus('idle');
+      setFormMessage('');
+    }
+  };
+
+  const handleContactSubmit = async (e) => {
     e.preventDefault();
     playSound(800, 'sine', 0.15);
     setTimeout(() => {
       playSound(1000, 'sine', 0.2);
     }, 100);
 
-    alert("Thank you! Your message has been sent successfully.");
-    e.target.reset();
+    const form = e.target;
+    const name = form.elements['name']?.value?.trim() || "";
+    const phone = form.elements['phone']?.value?.trim() || "";
+    const email = form.elements['email']?.value?.trim() || "";
+    const message = form.elements['message']?.value?.trim() || "";
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setFormStatus('error');
+      setFormMessage('Please enter a valid email address.');
+      playSound(200, 'sawtooth', 0.25);
+      return;
+    }
+
+    setFormStatus('sending');
+    setFormMessage('');
+
+    try {
+      const response = await fetch("https://formsubmit.co/ajax/jeevanantham2002nkl@gmail.com", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          name: name,
+          phone: phone,
+          email: email,
+          message: message,
+          _subject: "New Message from Portfolio Website",
+          _captcha: "false"
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success === "true") {
+        setFormStatus('success');
+        setFormMessage('Thank you! Your message has been sent successfully.');
+        form.reset();
+      } else {
+        setFormStatus('error');
+        setFormMessage(result.message || 'Something went wrong. Please try again.');
+        playSound(200, 'sawtooth', 0.25);
+      }
+    } catch (err) {
+      setFormStatus('error');
+      setFormMessage('Failed to connect to the server. Please try again.');
+      playSound(200, 'sawtooth', 0.25);
+    }
   };
 
   return (
@@ -470,8 +734,6 @@ function App() {
               <a href="#about" className={`nav-link ${activeSection === 'about' ? 'active' : ''}`} onMouseEnter={playHoverSound} onClick={playClickSound}>About</a>
               <a href="#projects" className={`nav-link ${activeSection === 'projects' ? 'active' : ''}`} onMouseEnter={playHoverSound} onClick={playClickSound}>Projects</a>
               <a href="#skills" className={`nav-link ${activeSection === 'skills' ? 'active' : ''}`} onMouseEnter={playHoverSound} onClick={playClickSound}>Skills</a>
-              <a href="#experience" className={`nav-link ${activeSection === 'experience' ? 'active' : ''}`} onMouseEnter={playHoverSound} onClick={playClickSound}>Experience</a>
-              <a href="#impact" className={`nav-link ${activeSection === 'impact' ? 'active' : ''}`} onMouseEnter={playHoverSound} onClick={playClickSound}>Impact</a>
               <span className="nav-divider">|</span>
               <div className="nav-dropdown" onClick={handleDropdownToggle} onMouseEnter={playHoverSound}>
                 Socials
@@ -503,8 +765,6 @@ function App() {
           <a href="#about" className="mobile-nav-link" onMouseEnter={playHoverSound} onClick={() => { playClickSound(); setMobileMenuOpen(false); }}>About</a>
           <a href="#projects" className="mobile-nav-link" onMouseEnter={playHoverSound} onClick={() => { playClickSound(); setMobileMenuOpen(false); }}>Projects</a>
           <a href="#skills" className="mobile-nav-link" onMouseEnter={playHoverSound} onClick={() => { playClickSound(); setMobileMenuOpen(false); }}>Skills</a>
-          <a href="#experience" className="mobile-nav-link" onMouseEnter={playHoverSound} onClick={() => { playClickSound(); setMobileMenuOpen(false); }}>Experience</a>
-          <a href="#impact" className="mobile-nav-link" onMouseEnter={playHoverSound} onClick={() => { playClickSound(); setMobileMenuOpen(false); }}>Impact</a>
           <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" className="mobile-nav-link" onMouseEnter={playHoverSound} onClick={() => { playClickSound(); setMobileMenuOpen(false); }}>LinkedIn</a>
           <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" className="mobile-nav-link" onMouseEnter={playHoverSound} onClick={() => { playClickSound(); setMobileMenuOpen(false); }}>Behance</a>
           <a href="#contact" className="mobile-cta" onMouseEnter={playHoverSound} onClick={() => { playClickSound(); setMobileMenuOpen(false); }}>Get In Touch</a>
@@ -586,11 +846,6 @@ function App() {
           <div className="about-grid">
             {/* Left Card: Profile Passport */}
             <div className="about-profile-card reveal reveal-slide-right" onMouseEnter={playHoverSound}>
-              <div className="profile-badge-active">
-                <span className="pulse-dot"></span>
-                <span>Active Deloitte Contractor</span>
-              </div>
-              
               <div className="profile-image-container">
                 <div className="profile-image-ring"></div>
                 <img src={profileImg} alt="Jeevanantham Jayaraj" className="profile-avatar" />
@@ -612,23 +867,8 @@ function App() {
                       <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
                       <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
                     </svg>
-                    3+ Years Exp
+                    {calculateExperience()} Exp
                   </span>
-                </div>
-              </div>
-
-              <div className="profile-highlights">
-                <div className="highlight-item">
-                  <span className="highlight-label">Specialty</span>
-                  <span className="highlight-value">Enterprise SaaS & Systems</span>
-                </div>
-                <div className="highlight-item">
-                  <span className="highlight-label">Mindset</span>
-                  <span className="highlight-value">Developer-Aligned UX</span>
-                </div>
-                <div className="highlight-item">
-                  <span className="highlight-label">Impact</span>
-                  <span className="highlight-value">18+ Shipped Products</span>
                 </div>
               </div>
 
@@ -705,74 +945,57 @@ function App() {
                 </p>
               </div>
 
-              <h4 className="about-subheading">Core Pillars & Value</h4>
-              <div className="pillars-container reveal-stagger-container">
-                <div className="pillar-item reveal reveal-scale" onMouseEnter={playHoverSound}>
-                  <div className="pillar-num">01</div>
-                  <div className="pillar-details">
-                    <h5>Deloitte Engagement</h5>
-                    <p>Designed and scaled 18+ enterprise dashboard projects, delivering solutions that streamline complex data and operational workflows.</p>
+              <h4 className="about-subheading">Current Engagement</h4>
+              <div className="current-work-card" onMouseEnter={playHoverSound}>
+                <div className="work-card-header">
+                  <div className="work-meta">
+                    <span className="work-badge-active">Active Engagement</span>
+                    <h5 className="work-title">UI/UX Designer (Deloitte Contractor)</h5>
+                    <span className="work-company">The Cloud Company / Deloitte</span>
                   </div>
+                  <span className="work-duration">Jul 2023 - Present ({calculateExperience()})</span>
                 </div>
-                
-                <div className="pillar-item reveal reveal-scale" onMouseEnter={playHoverSound}>
-                  <div className="pillar-num">02</div>
-                  <div className="pillar-details">
-                    <h5>Scalable Design Systems</h5>
-                    <p>Architecting multi-brand design tokens and modular component libraries that ensure consistency and speed up dev cycles.</p>
+                <p className="work-desc">
+                  Designing complex enterprise SaaS platforms, telemetry dashboards, and internal software utilities. Directly collaborating with engineering teams and stakeholders to build design-to-code pipelines using Design Tokens.
+                </p>
+                <div className="work-highlights">
+                  <div className="highlight-item">
+                    <span className="highlight-bullet">✦</span>
+                    <span>Delivered 18+ high-impact enterprise dashboard interfaces</span>
                   </div>
-                </div>
-
-                <div className="pillar-item reveal reveal-scale" onMouseEnter={playHoverSound}>
-                  <div className="pillar-num">03</div>
-                  <div className="pillar-details">
-                    <h5>Interaction & UX Design</h5>
-                    <p>Crafting high-fidelity interactive prototypes, user journey flows, and responsive layouts that optimize task efficiency.</p>
+                  <div className="highlight-item">
+                    <span className="highlight-bullet">✦</span>
+                    <span>Standardized design-to-code handoff using cohesive design token models</span>
+                  </div>
+                  <div className="highlight-item">
+                    <span className="highlight-bullet">✦</span>
+                    <span>Simplified complex administrative telemetry data flows, reducing user task completion times</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Full Width Design Philosophy block (within the About section) */}
-          <div className="about-philosophy-container" onMouseEnter={playHoverSound}>
-            <div className="philosophy-header reveal reveal-slide-up">
-              <h3 className="philosophy-title">My Design Philosophy</h3>
-              <p className="philosophy-subtitle">A structured, engineering-friendly workflow from user discovery to production handoff.</p>
+          <div className="impact-grid-new reveal reveal-slide-up" style={{marginTop: '3.5rem', transitionDelay: '0.1s'}}>
+            <div className="impact-card-new" onMouseEnter={playHoverSound}>
+              <span className="impact-stat-number">18+</span>
+              <span className="impact-stat-label">Projects Delivered</span>
+              <p>Deploying SaaS platforms and dashboards successfully under tight enterprise requirements.</p>
             </div>
-            
-            <div className="workflow-steps-full reveal-stagger-container">
-              <div className="workflow-step-new reveal reveal-slide-up">
-                <div className="step-num-badge">01</div>
-                <div className="step-content">
-                  <h4>Discover & Frame</h4>
-                  <p>Analyzing technical documentation, business objectives, and user workflows to map constraints and scope details.</p>
-                </div>
-              </div>
-
-              <div className="workflow-step-new reveal reveal-slide-up">
-                <div className="step-num-badge">02</div>
-                <div className="step-content">
-                  <h4>Wireframe & Map</h4>
-                  <p>Constructing interactive user flows and low-fidelity prototypes to test key application layout structures early.</p>
-                </div>
-              </div>
-
-              <div className="workflow-step-new reveal reveal-slide-up">
-                <div className="step-num-badge">03</div>
-                <div className="step-content">
-                  <h4>Design & Tokenize</h4>
-                  <p>Building cohesive layout frames in Figma integrated with Design Tokens for multi-brand consistency and integrity.</p>
-                </div>
-              </div>
-
-              <div className="workflow-step-new reveal reveal-slide-up">
-                <div className="step-num-badge">04</div>
-                <div className="step-content">
-                  <h4>Verify & Handoff</h4>
-                  <p>Providing interactive prototype specs, design guidelines, and token maps to guarantee developer alignment.</p>
-                </div>
-              </div>
+            <div className="impact-card-new" onMouseEnter={playHoverSound}>
+              <span className="impact-stat-number">200+</span>
+              <span className="impact-stat-label">Components Built</span>
+              <p>Standardizing UI components inside Figma to boost workflow scaling and developer velocity.</p>
+            </div>
+            <div className="impact-card-new" onMouseEnter={playHoverSound}>
+              <span className="impact-stat-number">40%</span>
+              <span className="impact-stat-label">Workflows Simplified</span>
+              <p>Reducing user task flow complexities, resulting in shorter product onboarding times.</p>
+            </div>
+            <div className="impact-card-new" onMouseEnter={playHoverSound}>
+              <span className="impact-stat-number">5+</span>
+              <span className="impact-stat-label">AI Tools Integrated</span>
+              <p>Leveraging generative tools and prompt engineering to accelerate design iterations.</p>
             </div>
           </div>
         </section>
@@ -904,120 +1127,100 @@ function App() {
         </section>
 
         {/* 5️⃣ Skills & Tools Section */}
-        <section className="skills-section" id="skills">
-          <div className="section-header reveal reveal-slide-up">
-            <span className="section-tag">Expertise</span>
-            <h2 className="section-title">What I bring to your team</h2>
-          </div>
+        <div className="skills-scroll-wrapper" ref={skillsWrapperRef}>
+          <section className="skills-section" id="skills">
+            <div className="section-header">
+              <span className="section-tag">Expertise</span>
+              <h2 className="section-title">What I bring to your team</h2>
+            </div>
 
-          <div className="skills-grid-new reveal-stagger-container">
-            <div className="skill-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
-              <div className="skill-card-icon">⚡</div>
-              <h3>UI/UX Design</h3>
-              <p>Creating intuitive user journeys, interactive wireframes, and pixel-perfect high-fidelity interface layouts.</p>
-            </div>
-            <div className="skill-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
-              <div className="skill-card-icon">📐</div>
-              <h3>Design Systems</h3>
-              <p>Developing scalable design libraries, token frameworks, and comprehensive guidelines for multi-brand platforms.</p>
-            </div>
-            <div className="skill-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
-              <div className="skill-card-icon">🎨</div>
-              <h3>Visual & Brand Design</h3>
-              <p>Establishing unique brand identities, custom vector assets, typography systems, and modern visual guides.</p>
-            </div>
-            <div className="skill-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
-              <div className="skill-card-icon">🔧</div>
-              <h3>Tools & Software</h3>
-              <p>Expert proficiency in Figma, Adobe XD, Photoshop, Illustrator, InDesign, and CSS integration.</p>
-            </div>
-            <div className="skill-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
-              <div className="skill-card-icon">💻</div>
-              <h3>Product Types</h3>
-              <p>Tailoring designs for responsive Web apps, enterprise SaaS dashboards, mobile interfaces, and patient portals.</p>
-            </div>
-            <div className="skill-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
-              <div className="skill-card-icon">🤝</div>
-              <h3>Collaboration</h3>
-              <p>Bridge developer-designer communication with component specs, Agile coordination, and design-token systems.</p>
-            </div>
-          </div>
-        </section>
+            <div className="simple-canvas-container">
+              {/* Animated Figma Multiplayer Cursors */}
+              <div className="figma-cursor cursor-blue">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 3v15.2l3.8-3.7 3.3 7.8 2.8-1.2-3.3-7.8h5.1z"/></svg>
+                <span className="cursor-label">Jeeva</span>
+              </div>
 
-        {/* 6️⃣ Experience Section */}
-        <section className="experience-section" id="experience">
-          <div className="section-header reveal reveal-slide-up">
-            <span className="section-tag">Career Journey</span>
-            <h2 className="section-title">Work & Education Timeline</h2>
-          </div>
-
-          <div className="timeline">
-            {/* Experience Item */}
-            <div className="timeline-item reveal reveal-slide-up">
-              <div className="timeline-dot"></div>
-              <div className="timeline-date">Jul 2023 - Present</div>
-              <div className="timeline-content" onMouseEnter={playHoverSound}>
-                <div className="timeline-header">
-                  <h3>UI/UX Designer (Deloitte Contractor)</h3>
-                  <span className="company-badge">The Cloud Company</span>
+              {/* Selected Figma Frame Card */}
+              <div className={`figma-frame-card-simple ${skillsList[activeSkillIndex].theme}`}>
+                {/* Figma Selection Handles on active frame corners */}
+                <span className="corner-handle tl"></span>
+                <span className="corner-handle tr"></span>
+                <span className="corner-handle bl"></span>
+                <span className="corner-handle br"></span>
+                
+                {/* Floating blue Figma label */}
+                <div className="figma-frame-badge">
+                  Frame: {skillsList[activeSkillIndex].title}
                 </div>
-                <p className="timeline-desc">Leading end-to-end design for complex enterprise SaaS dashboards, platforms, and AI-driven internal software tools.</p>
-                <ul className="timeline-bullets">
-                  <li>Led UI/UX design for enterprise SaaS platforms, dashboards, and AI-driven applications.</li>
-                  <li>Delivered 18+ design projects through Deloitte engagement across multiple product teams.</li>
-                  <li>Converted complex requirements into clear user flows, wireframes, and high-fidelity UI.</li>
-                  <li>Built design systems and reusable components for consistency and faster development.</li>
-                  <li>Collaborated with developers for pixel-perfect implementation and smooth handoff.</li>
-                  <li>Used modern tools (including AI where relevant) to speed up design iterations.</li>
-                </ul>
+
+                <div className="frame-card-content">
+                  <div className="frame-card-left">
+                    <div className="frame-card-icon-badge">
+                      {skillsList[activeSkillIndex].icon}
+                    </div>
+                    <div className="frame-card-tag">{skillsList[activeSkillIndex].tag}</div>
+                    <h3 className="frame-card-title">{skillsList[activeSkillIndex].title}</h3>
+                  </div>
+                  
+                  <div className="frame-card-right">
+                    <p className="frame-card-desc">{skillsList[activeSkillIndex].desc}</p>
+                    <div className="frame-card-chips-group">
+                      {skillsList[activeSkillIndex].chips.map((chip, idx) => (
+                        <span key={idx} className="frame-chip">{chip}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Simple slide navigation */}
+              <div className="figma-carousel-controls">
+                <button 
+                  className="figma-nav-btn prev-btn" 
+                  onClick={() => {
+                    playClickSound();
+                    setActiveSkillIndex((prev) => (prev === 0 ? skillsList.length - 1 : prev - 1));
+                  }}
+                  aria-label="Previous Skill"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                  </svg>
+                </button>
+                
+                <div className="figma-dots-indicator">
+                  {skillsList.map((_, index) => (
+                    <span
+                      key={index}
+                      className={`skills-carousel-dot ${activeSkillIndex === index ? 'active' : ''}`}
+                      onClick={() => { playClickSound(); setActiveSkillIndex(index); }}
+                    />
+                  ))}
+                </div>
+
+                <button 
+                  className="figma-nav-btn next-btn" 
+                  onClick={() => {
+                    playClickSound();
+                    setActiveSkillIndex((prev) => (prev === skillsList.length - 1 ? 0 : prev + 1));
+                  }}
+                  aria-label="Next Skill"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </button>
               </div>
             </div>
+          </section>
+        </div>
 
-            {/* Education Item */}
-            <div className="timeline-item reveal reveal-slide-up">
-              <div className="timeline-dot"></div>
-              <div className="timeline-date">Graduated 2024</div>
-              <div className="timeline-content" onMouseEnter={playHoverSound}>
-                <div className="timeline-header">
-                  <h3>B.E. Computer Science Engineering</h3>
-                  <span className="company-badge">Kongu Engineering College</span>
-                </div>
-                <p className="timeline-desc">Engineering studies providing a solid technical foundation, helping bridge the gap between design concepts and front-end development implementation.</p>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        {/* 7️⃣ Key Impact / Highlights Section */}
-        <section className="impact-section" id="impact">
-          <div className="section-header reveal reveal-slide-up">
-            <span className="section-tag">Impact</span>
-            <h2 className="section-title">Key Impact & Value</h2>
-          </div>
 
-          <div className="impact-grid-new reveal-stagger-container">
-            <div className="impact-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
-              <span className="impact-stat-number">18+</span>
-              <span className="impact-stat-label">Projects Delivered</span>
-              <p>Deploying SaaS platforms and dashboards successfully under tight enterprise requirements.</p>
-            </div>
-            <div className="impact-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
-              <span className="impact-stat-number">200+</span>
-              <span className="impact-stat-label">Components Built</span>
-              <p>Standardizing UI components inside Figma to boost workflow scaling and developer velocity.</p>
-            </div>
-            <div className="impact-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
-              <span className="impact-stat-number">40%</span>
-              <span className="impact-stat-label">Workflows Simplified</span>
-              <p>Reducing user task flow complexities, resulting in shorter product onboarding times.</p>
-            </div>
-            <div className="impact-card-new reveal reveal-scale" onMouseEnter={playHoverSound}>
-              <span className="impact-stat-number">5+</span>
-              <span className="impact-stat-label">AI Tools Integrated</span>
-              <p>Leveraging generative tools and prompt engineering to accelerate design iterations.</p>
-            </div>
-          </div>
-        </section>
+
 
         {/* 8️⃣ Contact Section */}
         <section className="contact-section" id="contact">
@@ -1027,58 +1230,128 @@ function App() {
           </div>
 
           <div className="contact-grid">
-            {/* Contact Cards Side */}
-            <div className="contact-cards-container reveal reveal-slide-right">
-              <a href="mailto:jeevanantham2002nkl@gmail.com" className="contact-card-link" onMouseEnter={playHoverSound} onClick={playClickSound}>
-                <div className="contact-card-icon">✉</div>
-                <div className="contact-card-text">
-                  <span className="contact-card-label">Email</span>
-                  <span className="contact-card-value">jeevanantham2002nkl@gmail.com</span>
-                </div>
-              </a>
+            {/* LEFT COLUMN: Links (4 folder cards + 1 banner) */}
+            <div className="contact-links-column reveal reveal-slide-right">
+              <div className="links-folder-grid">
+                {/* Email Card */}
+                <a href="mailto:jeevanantham2002nkl@gmail.com" className="folder-card link-folder-card" onMouseEnter={playHoverSound} onClick={playClickSound}>
+                  <svg className="folder-svg-bg" viewBox="0 0 605 103" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M605 59.8681C605 38.115 587.366 20.4807 565.613 20.4807L84.4537 20.4805C73.3433 20.4805 64.3365 29.4873 64.3365 40.5977C64.3365 51.7082 55.3297 60.7149 44.2192 60.7149H39.076C27.5248 60.7149 18.2138 70.1789 18.402 81.7285C18.5859 93.0151 27.7879 102.068 39.076 102.068H565.613C587.366 102.068 605 84.4341 605 62.681V59.8681Z" fill="currentColor"/>
+                    <circle cx="27.5" cy="27.5" r="27.5" transform="matrix(-1 0 0 1 55 0)" fill="currentColor"/>
+                  </svg>
+                  <div className="folder-icon-circle">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="folder-icon-svg">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                      <polyline points="22,6 12,13 2,6" />
+                    </svg>
+                  </div>
+                  <div className="folder-body">
+                    <span className="folder-card-label">Email</span>
+                    <span className="folder-card-value">jeevanantham2002nkl@gmail.com</span>
+                  </div>
+                </a>
 
-              <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" className="contact-card-link" onMouseEnter={playHoverSound} onClick={playClickSound}>
-                <div className="contact-card-icon">in</div>
-                <div className="contact-card-text">
-                  <span className="contact-card-label">LinkedIn</span>
-                  <span className="contact-card-value">linkedin.com/in/jeeva-j1426</span>
-                </div>
-              </a>
+                {/* LinkedIn Card */}
+                <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" className="folder-card link-folder-card" onMouseEnter={playHoverSound} onClick={playClickSound}>
+                  <svg className="folder-svg-bg" viewBox="0 0 605 103" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M605 59.8681C605 38.115 587.366 20.4807 565.613 20.4807L84.4537 20.4805C73.3433 20.4805 64.3365 29.4873 64.3365 40.5977C64.3365 51.7082 55.3297 60.7149 44.2192 60.7149H39.076C27.5248 60.7149 18.2138 70.1789 18.402 81.7285C18.5859 93.0151 27.7879 102.068 39.076 102.068H565.613C587.366 102.068 605 84.4341 605 62.681V59.8681Z" fill="currentColor"/>
+                    <circle cx="27.5" cy="27.5" r="27.5" transform="matrix(-1 0 0 1 55 0)" fill="currentColor"/>
+                  </svg>
+                  <div className="folder-icon-circle">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" className="folder-icon-svg">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                  </div>
+                  <div className="folder-body">
+                    <span className="folder-card-label">LinkedIn</span>
+                    <span className="folder-card-value">jeeva-j1426</span>
+                  </div>
+                </a>
 
-              <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" className="contact-card-link" onMouseEnter={playHoverSound} onClick={playClickSound}>
-                <div className="contact-card-icon">Bē</div>
-                <div className="contact-card-text">
-                  <span className="contact-card-label">Behance</span>
-                  <span className="contact-card-value">behance.net/jeevananthamj</span>
-                </div>
-              </a>
+                {/* Behance Card */}
+                <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" className="folder-card link-folder-card" onMouseEnter={playHoverSound} onClick={playClickSound}>
+                  <svg className="folder-svg-bg" viewBox="0 0 605 103" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M605 59.8681C605 38.115 587.366 20.4807 565.613 20.4807L84.4537 20.4805C73.3433 20.4805 64.3365 29.4873 64.3365 40.5977C64.3365 51.7082 55.3297 60.7149 44.2192 60.7149H39.076C27.5248 60.7149 18.2138 70.1789 18.402 81.7285C18.5859 93.0151 27.7879 102.068 39.076 102.068H565.613C587.366 102.068 605 84.4341 605 62.681V59.8681Z" fill="currentColor"/>
+                    <circle cx="27.5" cy="27.5" r="27.5" transform="matrix(-1 0 0 1 55 0)" fill="currentColor"/>
+                  </svg>
+                  <div className="folder-icon-circle">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" className="folder-icon-svg">
+                      <path d="M16.969 16.927a2.561 2.561 0 0 0 1.901.677 2.501 2.501 0 0 0 1.531-.475c.362-.235.636-.584.779-.99h2.585a5.091 5.091 0 0 1-1.9 2.896 5.292 5.292 0 0 1-3.091.88 5.839 5.839 0 0 1-2.284-.433 4.871 4.871 0 0 1-1.723-1.211 5.657 5.657 0 0 1-1.08-1.874 7.057 7.057 0 0 1-.383-2.393c-.005-.8.129-1.595.396-2.349a5.313 5.313 0 0 1 5.088-3.604 4.87 4.87 0 0 1 2.376.563c.661.362 1.231.87 1.668 1.485a6.2 6.2 0 0 1 .943 2.133c.194.821.263 1.666.205 2.508h-7.699c-.063.79.184 1.574.688 2.187ZM6.947 4.084a8.065 8.065 0 0 1 1.928.198 4.29 4.29 0 0 1 1.49.638c.418.303.748.711.958 1.182.241.579.357 1.203.341 1.83a3.506 3.506 0 0 1-.506 1.961 3.726 3.726 0 0 1-1.503 1.287 3.588 3.588 0 0 1 2.027 1.437c.464.747.697 1.615.67 2.494a4.593 4.593 0 0 1-.423 2.032 3.945 3.945 0 0 1-1.163 1.413 5.114 5.114 0 0 1-1.683.807 7.135 7.135 0 0 1-1.928.259H0V4.084h6.947Zm-.235 12.9c.308.004.616-.029.916-.099a2.18 2.18 0 0 0 .766-.332c.228-.158.411-.371.534-.619.142-.317.208-.663.191-1.009a2.08 2.08 0 0 0-.642-1.715 2.618 2.618 0 0 0-1.696-.505h-3.54v4.279h3.471Zm13.635-5.967a2.13 2.13 0 0 0-1.654-.619 2.336 2.336 0 0 0-1.163.259 2.474 2.474 0 0 0-.738.62 2.359 2.359 0 0 0-.396.792c-.074.239-.12.485-.137.734h4.769a3.239 3.239 0 0 0-.679-1.785l-.002-.001Zm-13.813-.648a2.254 2.254 0 0 0 1.423-.433c.399-.355.607-.88.56-1.413a1.916 1.916 0 0 0-.178-.891 1.298 1.298 0 0 0-.495-.533 1.851 1.851 0 0 0-.711-.274 3.966 3.966 0 0 0-.835-.073H3.241v3.631h3.293v-.014ZM21.62 5.122h-5.976v1.527h5.976V5.122Z"/>
+                    </svg>
+                  </div>
+                  <div className="folder-body">
+                    <span className="folder-card-label">Behance</span>
+                    <span className="folder-card-value">jeevananthamj</span>
+                  </div>
+                </a>
 
-              <a href="tel:+917339042578" className="contact-card-link" onMouseEnter={playHoverSound} onClick={playClickSound}>
-                <div className="contact-card-icon">📞</div>
-                <div className="contact-card-text">
-                  <span className="contact-card-label">Phone</span>
-                  <span className="contact-card-value">+91 73390 42578</span>
+                {/* Phone Card */}
+                <a href="tel:+917339042578" className="folder-card link-folder-card" onMouseEnter={playHoverSound} onClick={playClickSound}>
+                  <svg className="folder-svg-bg" viewBox="0 0 605 103" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M605 59.8681C605 38.115 587.366 20.4807 565.613 20.4807L84.4537 20.4805C73.3433 20.4805 64.3365 29.4873 64.3365 40.5977C64.3365 51.7082 55.3297 60.7149 44.2192 60.7149H39.076C27.5248 60.7149 18.2138 70.1789 18.402 81.7285C18.5859 93.0151 27.7879 102.068 39.076 102.068H565.613C587.366 102.068 605 84.4341 605 62.681V59.8681Z" fill="currentColor"/>
+                    <circle cx="27.5" cy="27.5" r="27.5" transform="matrix(-1 0 0 1 55 0)" fill="currentColor"/>
+                  </svg>
+                  <div className="folder-icon-circle">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="folder-icon-svg">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </svg>
+                  </div>
+                  <div className="folder-body">
+                    <span className="folder-card-label">Phone</span>
+                    <span className="folder-card-value">+91 73390 42578</span>
+                  </div>
+                </a>
+              </div>
+
+              {/* Bottom Large Banner Card */}
+              <div className="contact-banner-card reveal reveal-slide-up" onMouseEnter={playHoverSound}>
+                <div className="banner-main-content">
+                  <span className="banner-emoji">🚀</span>
+                  <span className="banner-text">Let's design and code the future together</span>
                 </div>
-              </a>
+              </div>
             </div>
 
-            {/* Contact Form Side */}
-            <div className="contact-form-container reveal reveal-slide-left" onMouseEnter={playHoverSound}>
-              <form className="contact-form" onSubmit={handleContactSubmit}>
-                <div className="form-group">
-                  <label htmlFor="form-name">Name</label>
-                  <input type="text" id="form-name" placeholder="Your Name" required />
+            {/* RIGHT COLUMN: Mail Card (Form) */}
+            <div className="contact-form-column reveal reveal-slide-left" onMouseEnter={playHoverSound}>
+              <div className="folder-card form-folder-card">
+                <svg className="folder-svg-bg" viewBox="0 0 566 847" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M0 75C0 46.2812 23.2812 23 52 23H353.581C380.237 23 402.576 43.1564 405.307 69.672L408.013 95.9379C410.606 121.111 430.944 140.762 456.191 142.489L517.409 146.676C544.744 148.546 565.939 171.305 565.86 198.704L564.149 795.149C564.067 823.81 540.81 847 512.149 847H52C23.2812 847 0 823.719 0 795V75Z" fill="currentColor"/>
+                </svg>
+                
+                <div className="folder-body">
+                  <h3 className="form-folder-title">Send a Message</h3>
+
+                  <form className="folder-contact-form" onSubmit={handleContactSubmit}>
+                    {formMessage && (
+                      <div className={`form-feedback ${formStatus === 'success' ? 'feedback-success' : 'feedback-error'}`}>
+                        {formMessage}
+                      </div>
+                    )}
+
+                    <div className="form-row-dual">
+                      <div className="folder-input-wrapper">
+                        <input type="text" id="form-name" name="name" placeholder="Name" required disabled={formStatus === 'sending'} onFocus={handleFormFocus} />
+                      </div>
+                      <div className="folder-input-wrapper">
+                        <input type="text" id="form-phone" name="phone" placeholder="Phone" required disabled={formStatus === 'sending'} onFocus={handleFormFocus} />
+                      </div>
+                    </div>
+
+                    <div className="folder-input-wrapper">
+                      <input type="email" id="form-email" name="email" placeholder="Email" required disabled={formStatus === 'sending'} onFocus={handleFormFocus} />
+                    </div>
+
+                    <div className="folder-input-wrapper textarea-wrapper">
+                      <textarea id="form-message" name="message" rows="3" placeholder="Your Message..." required disabled={formStatus === 'sending'} onFocus={handleFormFocus}></textarea>
+                    </div>
+
+                    <button type="submit" className="folder-submit-btn" onClick={playClickSound} disabled={formStatus === 'sending'}>
+                      {formStatus === 'sending' ? 'Sending...' : 'Send Message'}
+                    </button>
+                  </form>
                 </div>
-                <div className="form-group">
-                  <label htmlFor="form-email">Email</label>
-                  <input type="email" id="form-email" placeholder="you@example.com" required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="form-message">Message</label>
-                  <textarea id="form-message" rows="5" placeholder="Tell me about your project..." required></textarea>
-                </div>
-                <button type="submit" className="btn btn-primary form-submit-btn" onClick={playClickSound}>Send Message</button>
-              </form>
+              </div>
             </div>
           </div>
         </section>
