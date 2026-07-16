@@ -97,7 +97,26 @@ const skillsList = [
 ];
 
 function App() {
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [isLightTheme, setIsLightTheme] = useState(() => {
+    return localStorage.getItem('portfolio-theme') === 'light';
+  });
+
+  const toggleTheme = () => {
+    setIsLightTheme(prev => {
+      const newVal = !prev;
+      localStorage.setItem('portfolio-theme', newVal ? 'light' : 'dark');
+      return newVal;
+    });
+  };
+
+  useEffect(() => {
+    if (isLightTheme) {
+      document.body.classList.add('light-theme');
+    } else {
+      document.body.classList.remove('light-theme');
+    }
+  }, [isLightTheme]);
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
@@ -129,33 +148,6 @@ function App() {
     }
   };
 
-  // Audio playing utility
-  const playSound = (frequency = 400, type = 'sine', duration = 0.05) => {
-    if (!soundEnabled) return;
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = type;
-      osc.frequency.setValueAtTime(frequency, ctx.currentTime);
-
-      gain.gain.setValueAtTime(0.015, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + duration);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start();
-      osc.stop(ctx.currentTime + duration);
-    } catch (e) {
-      console.log("Audio not supported or blocked by browser policy");
-    }
-  };
-
-  // Hover and Click Sound helper functions
-  const playHoverSound = () => playSound(320, 'triangle', 0.03);
-  const playClickSound = () => playSound(550, 'sine', 0.08);
 
   // Timezone Live Clock
   useEffect(() => {
@@ -194,7 +186,6 @@ function App() {
         setActiveSkillIndex((prevIndex) => {
           // Play click sound only when index changes
           if (prevIndex !== index) {
-            playClickSound();
           }
           return index;
         });
@@ -371,6 +362,7 @@ function App() {
         originalTransform = target.style.transform || '';
         target.classList.remove('figma-spring-back');
         warningText = warningPhrases[Math.floor(Math.random() * warningPhrases.length)];
+        document.documentElement.classList.add('figma-dragging-active');
       }
     };
 
@@ -437,6 +429,7 @@ function App() {
 
       isDragging = false;
       dragEl = null;
+      document.documentElement.classList.remove('figma-dragging-active');
     };
 
     const handleSync = () => {
@@ -504,6 +497,7 @@ function App() {
       resizeStartWidth = rect.width;
       resizeStartHeight = rect.height;
       card.classList.add('resizing');
+      document.documentElement.classList.add('figma-dragging-active');
     };
 
     const handlePointerMove = (e) => {
@@ -539,6 +533,7 @@ function App() {
       if (isResizing) {
         isResizing = false;
         card.classList.remove('resizing');
+        document.documentElement.classList.remove('figma-dragging-active');
       }
     };
 
@@ -635,7 +630,6 @@ function App() {
   const handleDropdownToggle = (e) => {
     e.stopPropagation();
     setDropdownOpen(!dropdownOpen);
-    playSound(450, 'triangle', 0.04);
   };
 
   const handleFormFocus = () => {
@@ -647,9 +641,7 @@ function App() {
 
   const handleContactSubmit = async (e) => {
     e.preventDefault();
-    playSound(800, 'sine', 0.15);
     setTimeout(() => {
-      playSound(1000, 'sine', 0.2);
     }, 100);
 
     const form = e.target;
@@ -663,7 +655,6 @@ function App() {
     if (!emailRegex.test(email)) {
       setFormStatus('error');
       setFormMessage('Please enter a valid email address.');
-      playSound(200, 'sawtooth', 0.25);
       return;
     }
 
@@ -696,12 +687,10 @@ function App() {
       } else {
         setFormStatus('error');
         setFormMessage(result.message || 'Something went wrong. Please try again.');
-        playSound(200, 'sawtooth', 0.25);
       }
     } catch (err) {
       setFormStatus('error');
       setFormMessage('Failed to connect to the server. Please try again.');
-      playSound(200, 'sawtooth', 0.25);
     }
   };
 
@@ -724,30 +713,39 @@ function App() {
         {/* Header / Floating Navigation Bar */}
         <header className="navbar-container">
           <div className="floating-nav">
-            <a href="#hero" className="nav-logo" onMouseEnter={playHoverSound} onClick={playClickSound}>
+            <a href="#hero" className="nav-logo">
               <div className="logo-box">
                 <img src={profileImg} alt="Logo" className="nav-logo-img" />
               </div>
             </a>
 
             <nav className="nav-links">
-              <a href="#about" className={`nav-link ${activeSection === 'about' ? 'active' : ''}`} onMouseEnter={playHoverSound} onClick={playClickSound}>About</a>
-              <a href="#projects" className={`nav-link ${activeSection === 'projects' ? 'active' : ''}`} onMouseEnter={playHoverSound} onClick={playClickSound}>Projects</a>
-              <a href="#skills" className={`nav-link ${activeSection === 'skills' ? 'active' : ''}`} onMouseEnter={playHoverSound} onClick={playClickSound}>Skills</a>
+              <a href="#about" className={`nav-link ${activeSection === 'about' ? 'active' : ''}`}>About</a>
+              <a href="#projects" className={`nav-link ${activeSection === 'projects' ? 'active' : ''}`}>Projects</a>
+              <a href="#skills" className={`nav-link ${activeSection === 'skills' ? 'active' : ''}`}>Skills</a>
               <span className="nav-divider">|</span>
-              <div className="nav-dropdown" onClick={handleDropdownToggle} onMouseEnter={playHoverSound}>
+              <div className="nav-dropdown" onClick={handleDropdownToggle}>
                 Socials
                 <svg className="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 <div className={`dropdown-menu ${dropdownOpen ? 'active' : ''}`}>
-                  <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" onMouseEnter={playHoverSound} onClick={playClickSound}>LinkedIn</a>
-                  <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" onMouseEnter={playHoverSound} onClick={playClickSound}>Behance</a>
-                  <a href="mailto:jeevanantham2002nkl@gmail.com" onMouseEnter={playHoverSound} onClick={playClickSound}>Email</a>
+                  <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                  <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer">Behance</a>
+                  <a href="mailto:jeevanantham2002nkl@gmail.com">Email</a>
                 </div>
               </div>
             </nav>
           </div>
 
-          <a href="#contact" className="launch-btn" onMouseEnter={playHoverSound} onClick={playClickSound}>Get In Touch</a>
+          <div className="header-right">
+            <button className="theme-toggle-btn" onClick={toggleTheme} aria-label="Toggle Theme">
+              {isLightTheme ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+              )}
+            </button>
+            <a href="#contact" className="launch-btn">Get In Touch</a>
+          </div>
         </header>
 
         {/* Mobile Header */}
@@ -755,25 +753,25 @@ function App() {
           <div className="logo-box">
             <img src={profileImg} alt="Logo" className="nav-logo-img" />
           </div>
-          <button className="mobile-menu-btn" aria-label="Toggle Menu" onMouseEnter={playHoverSound} onClick={() => { playSound(350, 'sine', 0.06); setMobileMenuOpen(!mobileMenuOpen); }}>
+          <button className="mobile-menu-btn" aria-label="Toggle Menu" onClick={() => { setMobileMenuOpen(!mobileMenuOpen); }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
           </button>
         </header>
 
         {/* Mobile Dropdown Navigation */}
         <div className={`mobile-nav-menu ${mobileMenuOpen ? 'active' : ''}`}>
-          <a href="#about" className="mobile-nav-link" onMouseEnter={playHoverSound} onClick={() => { playClickSound(); setMobileMenuOpen(false); }}>About</a>
-          <a href="#projects" className="mobile-nav-link" onMouseEnter={playHoverSound} onClick={() => { playClickSound(); setMobileMenuOpen(false); }}>Projects</a>
-          <a href="#skills" className="mobile-nav-link" onMouseEnter={playHoverSound} onClick={() => { playClickSound(); setMobileMenuOpen(false); }}>Skills</a>
-          <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" className="mobile-nav-link" onMouseEnter={playHoverSound} onClick={() => { playClickSound(); setMobileMenuOpen(false); }}>LinkedIn</a>
-          <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" className="mobile-nav-link" onMouseEnter={playHoverSound} onClick={() => { playClickSound(); setMobileMenuOpen(false); }}>Behance</a>
-          <a href="#contact" className="mobile-cta" onMouseEnter={playHoverSound} onClick={() => { playClickSound(); setMobileMenuOpen(false); }}>Get In Touch</a>
+          <a href="#about" className="mobile-nav-link" onClick={() => { setMobileMenuOpen(false); }}>About</a>
+          <a href="#projects" className="mobile-nav-link" onClick={() => { setMobileMenuOpen(false); }}>Projects</a>
+          <a href="#skills" className="mobile-nav-link" onClick={() => { setMobileMenuOpen(false); }}>Skills</a>
+          <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" className="mobile-nav-link" onClick={() => { setMobileMenuOpen(false); }}>LinkedIn</a>
+          <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" className="mobile-nav-link" onClick={() => { setMobileMenuOpen(false); }}>Behance</a>
+          <a href="#contact" className="mobile-cta" onClick={() => { setMobileMenuOpen(false); }}>Get In Touch</a>
         </div>
 
         {/* 1️⃣ Landing / Hero Section */}
         <section className="hero-section" id="hero">
           <div className="hero-container">
-            <h1 className="hero-name" onMouseEnter={playHoverSound}>
+            <h1 className="hero-name">
               Hi, I'm <span className="inline-photo-card">
                 <span className="photo-wrapper">
                   <img src={profileImg} alt="Jeevanantham" className="inline-profile-img" />
@@ -787,25 +785,25 @@ function App() {
                 </div>
               </span> Jeevanantham
             </h1>
-            <h2 className="hero-title" onMouseEnter={playHoverSound}>UI/UX & Visual Designer</h2>
-            <p className="hero-tagline" onMouseEnter={playHoverSound}>Designing clarity from complexity — crafting high-impact enterprise SaaS platforms & scalable design systems.</p>
+            <h2 className="hero-title">UI/UX & Visual Designer</h2>
+            <p className="hero-tagline">Designing clarity from complexity — crafting high-impact enterprise SaaS platforms & scalable design systems.</p>
 
             <div className="hero-actions">
-              <a href="#projects" className="btn btn-primary" onMouseEnter={playHoverSound} onClick={playClickSound}>
+              <a href="#projects" className="btn btn-primary">
                 <span>View My Work</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
               </a>
-              <a href="#contact" className="btn btn-secondary" onMouseEnter={playHoverSound} onClick={playClickSound}>Get In Touch</a>
+              <a href="#contact" className="btn btn-secondary">Get In Touch</a>
             </div>
 
             <div className="hero-chips">
-              <div className="hero-chip" onMouseEnter={playHoverSound}>
+              <div className="hero-chip">
                 <span className="chip-highlight">18+</span> Projects
               </div>
-              <div className="hero-chip" onMouseEnter={playHoverSound}>
+              <div className="hero-chip">
                 <span className="chip-highlight">3+ Yrs</span> Exp.
               </div>
-              <div className="hero-chip" onMouseEnter={playHoverSound}>
+              <div className="hero-chip">
                 <span className="pulse-dot"></span> Active Deloitte Contractor
               </div>
             </div>
@@ -845,7 +843,7 @@ function App() {
 
           <div className="about-grid">
             {/* Left Card: Profile Passport */}
-            <div className="about-profile-card reveal reveal-slide-right" onMouseEnter={playHoverSound}>
+            <div className="about-profile-card reveal reveal-slide-right">
               <div className="profile-image-container">
                 <div className="profile-image-ring"></div>
                 <img src={profileImg} alt="Jeevanantham Jayaraj" className="profile-avatar" />
@@ -946,7 +944,7 @@ function App() {
               </div>
 
               <h4 className="about-subheading">Current Engagement</h4>
-              <div className="current-work-card" onMouseEnter={playHoverSound}>
+              <div className="current-work-card">
                 <div className="work-card-header">
                   <div className="work-meta">
                     <span className="work-badge-active">Active Engagement</span>
@@ -977,22 +975,22 @@ function App() {
           </div>
 
           <div className="impact-grid-new reveal reveal-slide-up" style={{marginTop: '3.5rem', transitionDelay: '0.1s'}}>
-            <div className="impact-card-new" onMouseEnter={playHoverSound}>
+            <div className="impact-card-new">
               <span className="impact-stat-number">18+</span>
               <span className="impact-stat-label">Projects Delivered</span>
               <p>Deploying SaaS platforms and dashboards successfully under tight enterprise requirements.</p>
             </div>
-            <div className="impact-card-new" onMouseEnter={playHoverSound}>
+            <div className="impact-card-new">
               <span className="impact-stat-number">200+</span>
               <span className="impact-stat-label">Components Built</span>
               <p>Standardizing UI components inside Figma to boost workflow scaling and developer velocity.</p>
             </div>
-            <div className="impact-card-new" onMouseEnter={playHoverSound}>
+            <div className="impact-card-new">
               <span className="impact-stat-number">40%</span>
               <span className="impact-stat-label">Workflows Simplified</span>
               <p>Reducing user task flow complexities, resulting in shorter product onboarding times.</p>
             </div>
-            <div className="impact-card-new" onMouseEnter={playHoverSound}>
+            <div className="impact-card-new">
               <span className="impact-stat-number">5+</span>
               <span className="impact-stat-label">AI Tools Integrated</span>
               <p>Leveraging generative tools and prompt engineering to accelerate design iterations.</p>
@@ -1009,7 +1007,7 @@ function App() {
 
           <div className="projects-container">
             {/* Featured Project (Big Card) */}
-            <div className="project-card featured-project reveal reveal-slide-up" onMouseEnter={playHoverSound} onClick={playClickSound}>
+            <div className="project-card featured-project reveal reveal-slide-up">
               <div className="project-image-wrapper">
                 <div className="project-mockup-bg featured-gradient">
                   <div className="mockup-ui">
@@ -1048,7 +1046,7 @@ function App() {
             {/* Grid of Smaller Projects */}
             <div className="projects-grid reveal-stagger-container">
               {/* Project 1 */}
-              <div className="project-card grid-project reveal reveal-slide-up" onMouseEnter={playHoverSound} onClick={playClickSound}>
+              <div className="project-card grid-project reveal reveal-slide-up">
                 <div className="project-image-wrapper">
                   <div className="project-mockup-bg proj-orange-grad">
                     <div className="mockup-circle"></div>
@@ -1067,7 +1065,7 @@ function App() {
               </div>
 
               {/* Project 2 */}
-              <div className="project-card grid-project reveal reveal-slide-up" onMouseEnter={playHoverSound} onClick={playClickSound}>
+              <div className="project-card grid-project reveal reveal-slide-up">
                 <div className="project-image-wrapper">
                   <div className="project-mockup-bg proj-blue-grad">
                     <div className="mockup-card-ui"></div>
@@ -1086,7 +1084,7 @@ function App() {
               </div>
 
               {/* Project 3 */}
-              <div className="project-card grid-project reveal reveal-slide-up" onMouseEnter={playHoverSound} onClick={playClickSound}>
+              <div className="project-card grid-project reveal reveal-slide-up">
                 <div className="project-image-wrapper">
                   <div className="project-mockup-bg proj-purple-grad">
                     <div className="mockup-lines"></div>
@@ -1105,7 +1103,7 @@ function App() {
               </div>
 
               {/* Project 4 */}
-              <div className="project-card grid-project reveal reveal-slide-up" onMouseEnter={playHoverSound} onClick={playClickSound}>
+              <div className="project-card grid-project reveal reveal-slide-up">
                 <div className="project-image-wrapper">
                   <div className="project-mockup-bg proj-yellow-grad">
                     <div className="mockup-chart-ui"></div>
@@ -1179,7 +1177,6 @@ function App() {
                 <button 
                   className="figma-nav-btn prev-btn" 
                   onClick={() => {
-                    playClickSound();
                     setActiveSkillIndex((prev) => (prev === 0 ? skillsList.length - 1 : prev - 1));
                   }}
                   aria-label="Previous Skill"
@@ -1195,7 +1192,7 @@ function App() {
                     <span
                       key={index}
                       className={`skills-carousel-dot ${activeSkillIndex === index ? 'active' : ''}`}
-                      onClick={() => { playClickSound(); setActiveSkillIndex(index); }}
+                      onClick={() => { setActiveSkillIndex(index); }}
                     />
                   ))}
                 </div>
@@ -1203,7 +1200,6 @@ function App() {
                 <button 
                   className="figma-nav-btn next-btn" 
                   onClick={() => {
-                    playClickSound();
                     setActiveSkillIndex((prev) => (prev === skillsList.length - 1 ? 0 : prev + 1));
                   }}
                   aria-label="Next Skill"
@@ -1234,7 +1230,7 @@ function App() {
             <div className="contact-links-column reveal reveal-slide-right">
               <div className="links-folder-grid">
                 {/* Email Card */}
-                <a href="mailto:jeevanantham2002nkl@gmail.com" className="folder-card link-folder-card" onMouseEnter={playHoverSound} onClick={playClickSound}>
+                <a href="mailto:jeevanantham2002nkl@gmail.com" className="folder-card link-folder-card">
                   <svg className="folder-svg-bg" viewBox="0 0 605 103" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M605 59.8681C605 38.115 587.366 20.4807 565.613 20.4807L84.4537 20.4805C73.3433 20.4805 64.3365 29.4873 64.3365 40.5977C64.3365 51.7082 55.3297 60.7149 44.2192 60.7149H39.076C27.5248 60.7149 18.2138 70.1789 18.402 81.7285C18.5859 93.0151 27.7879 102.068 39.076 102.068H565.613C587.366 102.068 605 84.4341 605 62.681V59.8681Z" fill="currentColor"/>
                     <circle cx="27.5" cy="27.5" r="27.5" transform="matrix(-1 0 0 1 55 0)" fill="currentColor"/>
@@ -1252,7 +1248,7 @@ function App() {
                 </a>
 
                 {/* LinkedIn Card */}
-                <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" className="folder-card link-folder-card" onMouseEnter={playHoverSound} onClick={playClickSound}>
+                <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" className="folder-card link-folder-card">
                   <svg className="folder-svg-bg" viewBox="0 0 605 103" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M605 59.8681C605 38.115 587.366 20.4807 565.613 20.4807L84.4537 20.4805C73.3433 20.4805 64.3365 29.4873 64.3365 40.5977C64.3365 51.7082 55.3297 60.7149 44.2192 60.7149H39.076C27.5248 60.7149 18.2138 70.1789 18.402 81.7285C18.5859 93.0151 27.7879 102.068 39.076 102.068H565.613C587.366 102.068 605 84.4341 605 62.681V59.8681Z" fill="currentColor"/>
                     <circle cx="27.5" cy="27.5" r="27.5" transform="matrix(-1 0 0 1 55 0)" fill="currentColor"/>
@@ -1269,7 +1265,7 @@ function App() {
                 </a>
 
                 {/* Behance Card */}
-                <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" className="folder-card link-folder-card" onMouseEnter={playHoverSound} onClick={playClickSound}>
+                <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" className="folder-card link-folder-card">
                   <svg className="folder-svg-bg" viewBox="0 0 605 103" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M605 59.8681C605 38.115 587.366 20.4807 565.613 20.4807L84.4537 20.4805C73.3433 20.4805 64.3365 29.4873 64.3365 40.5977C64.3365 51.7082 55.3297 60.7149 44.2192 60.7149H39.076C27.5248 60.7149 18.2138 70.1789 18.402 81.7285C18.5859 93.0151 27.7879 102.068 39.076 102.068H565.613C587.366 102.068 605 84.4341 605 62.681V59.8681Z" fill="currentColor"/>
                     <circle cx="27.5" cy="27.5" r="27.5" transform="matrix(-1 0 0 1 55 0)" fill="currentColor"/>
@@ -1286,7 +1282,7 @@ function App() {
                 </a>
 
                 {/* Phone Card */}
-                <a href="tel:+917339042578" className="folder-card link-folder-card" onMouseEnter={playHoverSound} onClick={playClickSound}>
+                <a href="tel:+917339042578" className="folder-card link-folder-card">
                   <svg className="folder-svg-bg" viewBox="0 0 605 103" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M605 59.8681C605 38.115 587.366 20.4807 565.613 20.4807L84.4537 20.4805C73.3433 20.4805 64.3365 29.4873 64.3365 40.5977C64.3365 51.7082 55.3297 60.7149 44.2192 60.7149H39.076C27.5248 60.7149 18.2138 70.1789 18.402 81.7285C18.5859 93.0151 27.7879 102.068 39.076 102.068H565.613C587.366 102.068 605 84.4341 605 62.681V59.8681Z" fill="currentColor"/>
                     <circle cx="27.5" cy="27.5" r="27.5" transform="matrix(-1 0 0 1 55 0)" fill="currentColor"/>
@@ -1304,7 +1300,7 @@ function App() {
               </div>
 
               {/* Bottom Large Banner Card */}
-              <div className="contact-banner-card reveal reveal-slide-up" onMouseEnter={playHoverSound}>
+              <div className="contact-banner-card reveal reveal-slide-up">
                 <div className="banner-main-content">
                   <span className="banner-emoji">🚀</span>
                   <span className="banner-text">Let's design and code the future together</span>
@@ -1313,7 +1309,7 @@ function App() {
             </div>
 
             {/* RIGHT COLUMN: Mail Card (Form) */}
-            <div className="contact-form-column reveal reveal-slide-left" onMouseEnter={playHoverSound}>
+            <div className="contact-form-column reveal reveal-slide-left">
               <div className="folder-card form-folder-card">
                 <svg className="folder-svg-bg" viewBox="0 0 566 847" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M0 75C0 46.2812 23.2812 23 52 23H353.581C380.237 23 402.576 43.1564 405.307 69.672L408.013 95.9379C410.606 121.111 430.944 140.762 456.191 142.489L517.409 146.676C544.744 148.546 565.939 171.305 565.86 198.704L564.149 795.149C564.067 823.81 540.81 847 512.149 847H52C23.2812 847 0 823.719 0 795V75Z" fill="currentColor"/>
@@ -1346,7 +1342,7 @@ function App() {
                       <textarea id="form-message" name="message" rows="3" placeholder="Your Message..." required disabled={formStatus === 'sending'} onFocus={handleFormFocus}></textarea>
                     </div>
 
-                    <button type="submit" className="folder-submit-btn" onClick={playClickSound} disabled={formStatus === 'sending'}>
+                    <button type="submit" className="folder-submit-btn" disabled={formStatus === 'sending'}>
                       {formStatus === 'sending' ? 'Sending...' : 'Send Message'}
                     </button>
                   </form>
@@ -1358,12 +1354,60 @@ function App() {
 
         {/* 9️⃣ Footer */}
         <footer className="footer-section">
-          <div className="footer-bottom">
-            <p>&copy; 2026 Jeevanantham Jayaraj. Namakkal, Tamilnadu, India. All rights reserved.</p>
-            <div className="footer-links">
-              <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" onMouseEnter={playHoverSound} onClick={playClickSound}>Behance</a>
-              <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" onMouseEnter={playHoverSound} onClick={playClickSound}>LinkedIn</a>
-              <a href="mailto:jeevanantham2002nkl@gmail.com" onMouseEnter={playHoverSound} onClick={playClickSound}>Email</a>
+          <div className="footer-decor-text">JEEVANANTHAM</div>
+
+          <div className="footer-container">
+            <div className="footer-main">
+              {/* Brand & Bio block */}
+              <div className="footer-brand-block">
+                <div className="footer-logo">
+                  <span>J</span>EEVANANTHAM
+                </div>
+                <p className="footer-bio">
+                  Designing clarity from complexity — crafting high-impact enterprise SaaS platforms & scalable design systems.
+                </p>
+                <div className="footer-status-badge">
+                  <span className="status-dot pulsing"></span>
+                  <span>Available for freelance opportunities</span>
+                </div>
+              </div>
+
+              {/* Nav columns */}
+              <div className="footer-nav-group">
+                <div className="footer-nav-col">
+                  <h4 className="footer-col-title">Navigation</h4>
+                  <ul className="footer-nav-links">
+                    <li><a href="#hero">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#projects">Projects</a></li>
+                    <li><a href="#skills">Skills</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                  </ul>
+                </div>
+
+                <div className="footer-nav-col">
+                  <h4 className="footer-col-title">Socials</h4>
+                  <ul className="footer-nav-links">
+                    <li><a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+                    <li><a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer">Behance</a></li>
+                    <li><a href="mailto:jeevanantham2002nkl@gmail.com">Email</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Bar */}
+            <div className="footer-bottom-bar">
+              <p className="footer-copyright">
+                &copy; {new Date().getFullYear()} Jeevanantham Jayaraj. All rights reserved.
+              </p>
+              <button className="footer-back-to-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Scroll to top">
+                <span>Back to Top</span>
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="19" x2="12" y2="5"></line>
+                  <polyline points="5 12 12 5 19 12"></polyline>
+                </svg>
+              </button>
             </div>
           </div>
         </footer>
