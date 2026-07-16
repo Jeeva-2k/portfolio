@@ -191,12 +191,25 @@ function App() {
         console.warn("Geo IP API failed, skipping geolocation lookup:", err);
       }
 
+      // Check if user has visited before
+      let visitorType = "New";
+      try {
+        if (localStorage.getItem("has_visited_before")) {
+          visitorType = "Returning";
+        } else {
+          localStorage.setItem("has_visited_before", "true");
+        }
+      } catch (e) {
+        console.warn("Storage read/write failed:", e);
+      }
+
       // If Google Sheet Web App URL is provided, log the visit details
       if (GOOGLE_SHEET_WEBAPP_URL) {
         try {
           const payload = {
             sessionId: sessionId,
             type: "Page View",
+            visitorType: visitorType,
             timestamp: new Date().toISOString(),
             month: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }),
             city: city,
@@ -831,6 +844,12 @@ function App() {
             } catch (gErr) {}
 
             const sessionId = sessionStorage.getItem("portfolio_session_id") || "";
+            let visitorType = "New";
+            try {
+              if (localStorage.getItem("has_visited_before")) {
+                visitorType = "Returning";
+              }
+            } catch (e) {}
 
             await fetch(GOOGLE_SHEET_WEBAPP_URL, {
               method: "POST",
@@ -841,6 +860,7 @@ function App() {
               body: JSON.stringify({
                 sessionId: sessionId,
                 type: "Contact Submission",
+                visitorType: visitorType,
                 timestamp: new Date().toISOString(),
                 month: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }),
                 name: name,
