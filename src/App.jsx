@@ -149,6 +149,17 @@ function App() {
 
   // Live Visitor Logging & Counting
   useEffect(() => {
+    // Generate a unique session ID for the tab if it doesn't exist
+    let sessionId = sessionStorage.getItem("portfolio_session_id");
+    if (!sessionId) {
+      sessionId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      sessionStorage.setItem("portfolio_session_id", sessionId);
+    }
+
+    let city = "Unknown";
+    let country = "Unknown";
+    const startTime = Date.now();
+
     const recordVisit = async () => {
       try {
         // Increment visitor count using the free CounterAPI (scoped specifically to this project)
@@ -162,9 +173,6 @@ function App() {
       } catch (err) {
         console.warn("Counter API failed, skipping count increment:", err);
       }
-
-      let city = "Unknown";
-      let country = "Unknown";
 
       try {
         // Fetch approximate location info (city and country) securely and anonymously
@@ -187,6 +195,8 @@ function App() {
       if (GOOGLE_SHEET_WEBAPP_URL) {
         try {
           const payload = {
+            sessionId: sessionId,
+            type: "Page View",
             timestamp: new Date().toISOString(),
             month: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }),
             city: city,
@@ -195,7 +205,8 @@ function App() {
             device: /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
             userAgent: navigator.userAgent,
             name: localStorage.getItem('visitor_name') || "Anonymous",
-            email: localStorage.getItem('visitor_email') || "Anonymous"
+            email: localStorage.getItem('visitor_email') || "Anonymous",
+            timeSpent: 0
           };
 
           await fetch(GOOGLE_SHEET_WEBAPP_URL, {
@@ -212,9 +223,61 @@ function App() {
       }
     };
 
+    // Periodically update the time spent
+    const sendDurationUpdate = async () => {
+      if (!GOOGLE_SHEET_WEBAPP_URL) return;
+      const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+      try {
+        await fetch(GOOGLE_SHEET_WEBAPP_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            type: "Duration Update",
+            sessionId: sessionId,
+            timeSpent: elapsedSeconds
+          })
+        });
+      } catch (err) {
+        console.warn("Failed to update duration:", err);
+      }
+    };
+
     // Avoid logging on local development to preserve accuracy
     if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
       recordVisit();
+
+      // Update duration every 20 seconds
+      const durationInterval = setInterval(sendDurationUpdate, 20000);
+
+      // Send final duration update on page unload
+      const handleUnload = () => {
+        const elapsedSeconds = Math.round((Date.now() - startTime) / 1000);
+        fetch(GOOGLE_SHEET_WEBAPP_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            type: "Duration Update",
+            sessionId: sessionId,
+            timeSpent: elapsedSeconds
+          }),
+          keepalive: true
+        });
+      };
+
+      window.addEventListener("beforeunload", handleUnload);
+      window.addEventListener("pagehide", handleUnload);
+
+      return () => {
+        clearInterval(durationInterval);
+        window.removeEventListener("beforeunload", handleUnload);
+        window.removeEventListener("pagehide", handleUnload);
+      };
     } else {
       // Mock data for local testing
       setVisitorCount(1234);
@@ -752,6 +815,49 @@ function App() {
         } catch (storageErr) {
           console.warn("Storage write blocked or failed:", storageErr);
         }
+
+        // Log the message data directly to Google Sheets
+        if (GOOGLE_SHEET_WEBAPP_URL) {
+          try {
+            let city = "Unknown";
+            let country = "Unknown";
+            try {
+              const geoRes = await fetch("https://ipapi.co/json/");
+              if (geoRes.ok) {
+                const geoData = await geoRes.ok ? await geoRes.json() : {};
+                city = geoData.city || "Unknown";
+                country = geoData.country_name || "Unknown";
+              }
+            } catch (gErr) {}
+
+            const sessionId = sessionStorage.getItem("portfolio_session_id") || "";
+
+            await fetch(GOOGLE_SHEET_WEBAPP_URL, {
+              method: "POST",
+              mode: "no-cors",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                sessionId: sessionId,
+                type: "Contact Submission",
+                timestamp: new Date().toISOString(),
+                month: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+                name: name,
+                email: email,
+                phone: phone,
+                message: message,
+                city: city,
+                country: country,
+                referrer: document.referrer || "Direct",
+                device: /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "Mobile" : "Desktop"
+              })
+            });
+          } catch (sheetErr) {
+            console.warn("Failed to log form submission to Google Sheet:", sheetErr);
+          }
+        }
+
         form.reset();
       } else {
         setFormStatus('error');
