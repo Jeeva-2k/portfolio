@@ -2,6 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import profileImg from './assets/profile.png';
 
+// Paste your Google Apps Script Web App URL below to log every visit directly to a Google Sheet (Excel-compatible)
+const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz7SPLYZVRHRvK_KZwz9HrgCxGrx1jVzVd6DRzEuiqeJzygNsoeeN5XfqVfDUfD7tnCBQ/exec";
+
+
+
 const skillsList = [
   {
     fileName: 'UIUX.json',
@@ -97,26 +102,6 @@ const skillsList = [
 ];
 
 function App() {
-  const [isLightTheme, setIsLightTheme] = useState(() => {
-    return localStorage.getItem('portfolio-theme') === 'light';
-  });
-
-  const toggleTheme = () => {
-    setIsLightTheme(prev => {
-      const newVal = !prev;
-      localStorage.setItem('portfolio-theme', newVal ? 'light' : 'dark');
-      return newVal;
-    });
-  };
-
-  useEffect(() => {
-    if (isLightTheme) {
-      document.body.classList.add('light-theme');
-    } else {
-      document.body.classList.remove('light-theme');
-    }
-  }, [isLightTheme]);
-
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
@@ -124,6 +109,8 @@ function App() {
   const [currentTime, setCurrentTime] = useState('');
   const [formStatus, setFormStatus] = useState('idle'); // 'idle' | 'sending' | 'success' | 'error'
   const [formMessage, setFormMessage] = useState('');
+  const [visitorCount, setVisitorCount] = useState(null);
+  const [visitorGeo, setVisitorGeo] = useState('');
   const skillsWrapperRef = useRef(null);
 
   // Calculate experience duration dynamically from July 2023
@@ -159,6 +146,80 @@ function App() {
     const timer = setInterval(updateTime, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Live Visitor Logging & Counting
+  useEffect(() => {
+    const recordVisit = async () => {
+      try {
+        // Increment visitor count using the free CounterAPI (scoped specifically to this project)
+        const counterRes = await fetch("https://api.counterapi.dev/v1/jeevanantham-portfolio/visits/up");
+        if (counterRes.ok) {
+          const counterData = await counterRes.json();
+          if (counterData && typeof counterData.value === 'number') {
+            setVisitorCount(counterData.value);
+          }
+        }
+      } catch (err) {
+        console.warn("Counter API failed, skipping count increment:", err);
+      }
+
+      let city = "Unknown";
+      let country = "Unknown";
+
+      try {
+        // Fetch approximate location info (city and country) securely and anonymously
+        const geoRes = await fetch("https://ipapi.co/json/");
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          city = geoData.city || "Unknown";
+          country = geoData.country_name || "Unknown";
+          if (geoData.city && geoData.country_name) {
+            setVisitorGeo(`${geoData.city}, ${geoData.country_name}`);
+          } else if (geoData.country_name) {
+            setVisitorGeo(geoData.country_name);
+          }
+        }
+      } catch (err) {
+        console.warn("Geo IP API failed, skipping geolocation lookup:", err);
+      }
+
+      // If Google Sheet Web App URL is provided, log the visit details
+      if (GOOGLE_SHEET_WEBAPP_URL) {
+        try {
+          const payload = {
+            timestamp: new Date().toISOString(),
+            month: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+            city: city,
+            country: country,
+            referrer: document.referrer || "Direct",
+            device: /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
+            userAgent: navigator.userAgent
+          };
+
+          await fetch(GOOGLE_SHEET_WEBAPP_URL, {
+            method: "POST",
+            mode: "no-cors", // Required to bypass CORS restriction of Google Script redirects
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
+        } catch (err) {
+          console.warn("Failed to log visit to Google Sheet:", err);
+        }
+      }
+    };
+
+    // Avoid logging on local development to preserve accuracy
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      recordVisit();
+    } else {
+      // Mock data for local testing
+      setVisitorCount(1234);
+      setVisitorGeo("Namakkal, India");
+    }
+  }, []);
+
 
   // Scroll-driven active index transition for pinned Skills section
   useEffect(() => {
@@ -736,16 +797,7 @@ function App() {
             </nav>
           </div>
 
-          <div className="header-right">
-            <button className="theme-toggle-btn" onClick={toggleTheme} aria-label="Toggle Theme">
-              {isLightTheme ? (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-              ) : (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-              )}
-            </button>
-            <a href="#contact" className="launch-btn">Get In Touch</a>
-          </div>
+          <a href="#contact" className="launch-btn">Get In Touch</a>
         </header>
 
         {/* Mobile Header */}
@@ -1370,6 +1422,15 @@ function App() {
                   <span className="status-dot pulsing"></span>
                   <span>Available for freelance opportunities</span>
                 </div>
+                {visitorCount !== null && (
+                  <div className="footer-visitor-badge">
+                    <span className="visitor-dot pulsing"></span>
+                    <span>
+                      Visitor #{visitorCount.toLocaleString()}
+                      {visitorGeo && ` • Connected from ${visitorGeo}`}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Nav columns */}
