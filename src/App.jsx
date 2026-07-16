@@ -193,7 +193,9 @@ function App() {
             country: country,
             referrer: document.referrer || "Direct",
             device: /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
-            userAgent: navigator.userAgent
+            userAgent: navigator.userAgent,
+            name: localStorage.getItem('visitor_name') || "Anonymous",
+            email: localStorage.getItem('visitor_email') || "Anonymous"
           };
 
           await fetch(GOOGLE_SHEET_WEBAPP_URL, {
@@ -744,6 +746,12 @@ function App() {
       if (response.ok && result.success === "true") {
         setFormStatus('success');
         setFormMessage('Thank you! Your message has been sent successfully.');
+        try {
+          localStorage.setItem('visitor_name', name);
+          localStorage.setItem('visitor_email', email);
+        } catch (storageErr) {
+          console.warn("Storage write blocked or failed:", storageErr);
+        }
         form.reset();
       } else {
         setFormStatus('error');
