@@ -5,8 +5,6 @@ import profileImg from './assets/profile.png';
 // Paste your Google Apps Script Web App URL below to log every visit directly to a Google Sheet (Excel-compatible)
 const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz7SPLYZVRHRvK_KZwz9HrgCxGrx1jVzVd6DRzEuiqeJzygNsoeeN5XfqVfDUfD7tnCBQ/exec";
 
-
-
 const skillsList = [
   {
     fileName: 'UIUX.json',
@@ -102,15 +100,14 @@ const skillsList = [
 ];
 
 function App() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('');
+  const [activeSection, setActiveSection] = useState('hero');
   const [activeSkillIndex, setActiveSkillIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState('');
   const [formStatus, setFormStatus] = useState('idle'); // 'idle' | 'sending' | 'success' | 'error'
   const [formMessage, setFormMessage] = useState('');
   const [visitorCount, setVisitorCount] = useState(null);
   const [visitorGeo, setVisitorGeo] = useState('');
+  const [scrolled, setScrolled] = useState(false);
   const skillsWrapperRef = useRef(null);
 
   // Calculate experience duration dynamically from July 2023
@@ -135,7 +132,6 @@ function App() {
     }
   };
 
-
   // Timezone Live Clock
   useEffect(() => {
     const updateTime = () => {
@@ -151,7 +147,6 @@ function App() {
   useEffect(() => {
     const recordVisit = async () => {
       try {
-        // Increment visitor count using the free CounterAPI (scoped specifically to this project)
         const counterRes = await fetch("https://api.counterapi.dev/v1/jeevanantham-portfolio/visits/up");
         if (counterRes.ok) {
           const counterData = await counterRes.json();
@@ -167,7 +162,6 @@ function App() {
       let country = "Unknown";
 
       try {
-        // Fetch approximate location info (city and country) securely and anonymously
         const geoRes = await fetch("https://ipapi.co/json/");
         if (geoRes.ok) {
           const geoData = await geoRes.json();
@@ -183,7 +177,6 @@ function App() {
         console.warn("Geo IP API failed, skipping geolocation lookup:", err);
       }
 
-      // If Google Sheet Web App URL is provided, log the visit details
       if (GOOGLE_SHEET_WEBAPP_URL) {
         try {
           const payload = {
@@ -199,7 +192,7 @@ function App() {
 
           await fetch(GOOGLE_SHEET_WEBAPP_URL, {
             method: "POST",
-            mode: "no-cors", // Required to bypass CORS restriction of Google Script redirects
+            mode: "no-cors",
             headers: {
               "Content-Type": "application/json"
             },
@@ -211,77 +204,28 @@ function App() {
       }
     };
 
-    // Avoid logging on local development to preserve accuracy
     if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
       recordVisit();
     } else {
-      // Mock data for local testing
       setVisitorCount(1234);
       setVisitorGeo("Namakkal, India");
     }
   }, []);
 
-
-  // Scroll-driven active index transition for pinned Skills section
-  useEffect(() => {
-    const handleSkillsScroll = () => {
-      if (!skillsWrapperRef.current) return;
-      const rect = skillsWrapperRef.current.getBoundingClientRect();
-      const wrapperHeight = rect.height;
-      const viewportHeight = window.innerHeight;
-      
-      // Calculate scroll progress through the wrapper
-      const start = window.scrollY + rect.top;
-      const end = start + wrapperHeight - viewportHeight;
-      const currentScroll = window.scrollY;
-
-      if (currentScroll < start) {
-        setActiveSkillIndex(0);
-      } else if (currentScroll > end) {
-        setActiveSkillIndex(skillsList.length - 1);
-      } else {
-        const progress = (currentScroll - start) / (end - start);
-        // Map progress [0, 1] to index [0, skillsList.length - 1]
-        const rawIndex = Math.floor(progress * skillsList.length);
-        const index = Math.max(0, Math.min(rawIndex, skillsList.length - 1));
-        
-        setActiveSkillIndex((prevIndex) => {
-          // Play click sound only when index changes
-          if (prevIndex !== index) {
-          }
-          return index;
-        });
-      }
-    };
-
-    window.addEventListener('scroll', handleSkillsScroll);
-    return () => window.removeEventListener('scroll', handleSkillsScroll);
-  }, []);
-
-
-  // Force landing page scroll behavior on mount
-  useEffect(() => {
-    if (history.scrollRestoration) {
-      history.scrollRestoration = 'manual';
-    }
-    if (window.location.hash) {
-      const target = document.querySelector(window.location.hash);
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth' });
-        return;
-      }
-    }
-    window.scrollTo({ top: 0, behavior: 'instant' });
-  }, []);
-
   // Sync scroll positions with active navigation links
   useEffect(() => {
     const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+
       const sections = document.querySelectorAll('section[id]');
-      let current = '';
+      let current = 'hero';
       sections.forEach(section => {
         const sectionTop = section.offsetTop;
-        if (window.scrollY >= (sectionTop - 280)) {
+        if (window.scrollY >= (sectionTop - 350)) {
           current = section.getAttribute('id');
         }
       });
@@ -290,13 +234,6 @@ function App() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Close dropdown menu when clicking anywhere else
-  useEffect(() => {
-    const handleCloseDropdown = () => setDropdownOpen(false);
-    document.addEventListener('click', handleCloseDropdown);
-    return () => document.removeEventListener('click', handleCloseDropdown);
   }, []);
 
   // Track mouse coordinates for spotlight grid effect
@@ -309,33 +246,9 @@ function App() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Scroll reveal animation observer
-  useEffect(() => {
-    const revealElements = document.querySelectorAll('.reveal');
-    
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('reveal-active');
-        } else {
-          entry.target.classList.remove('reveal-active');
-        }
-      });
-    }, {
-      threshold: 0.05,
-      rootMargin: '0px 0px -40px 0px'
-    });
-
-    revealElements.forEach(el => observer.observe(el));
-
-    return () => {
-      revealElements.forEach(el => observer.unobserve(el));
-    };
-  }, []);
-
   // Figma Hover Frame and Elastic Drag Interaction
   useEffect(() => {
-    const targetSelector = '.hero-name, .hero-title, .hero-tagline, .hero-section .btn, .hero-chip, .inline-photo-card';
+    const targetSelector = '.text-name-styled, .text-yellow-styled, .text-condensed-styled, .text-purple-styled, .text-outline-styled, .header-resume-btn, .header-chat-btn, .dock-item, .brotype-project-card, .inline-photo-card';
     
     const frame = document.getElementById('figma-frame');
     const badge = document.getElementById('figma-badge');
@@ -361,21 +274,15 @@ function App() {
     ];
 
     const getBadgeLabel = (el) => {
-      if (el.classList.contains('btn') || el.classList.contains('launch-btn')) return 'Button';
-      if (el.classList.contains('hero-name')) return 'Text (Name)';
-      if (el.classList.contains('hero-title')) return 'Text (Title)';
-      if (el.classList.contains('hero-tagline')) return 'Text (Subtitle)';
-      if (el.classList.contains('section-title')) return 'Heading 2';
-      if (el.classList.contains('section-tag')) return 'Badge';
-      if (el.classList.contains('project-card')) return 'Component (Project Card)';
-      if (el.classList.contains('hero-chip')) return 'Chip';
-      if (el.classList.contains('about-highlight-card')) return 'Card Highlight';
-      if (el.classList.contains('skill-card-new')) return 'Skill Card';
-      if (el.classList.contains('timeline-content')) return 'Timeline Node';
-      if (el.classList.contains('impact-card-new')) return 'Impact Stat';
-      if (el.classList.contains('contact-card-link')) return 'Contact Pill';
-      if (el.classList.contains('contact-form-container')) return 'Form Instance';
-      if (el.classList.contains('inline-photo-card')) return 'Frame (Photo)';
+      if (el.classList.contains('header-resume-btn') || el.classList.contains('header-chat-btn')) return 'Header Button';
+      if (el.classList.contains('text-name-styled')) return 'Text (Name)';
+      if (el.classList.contains('text-yellow-styled')) return 'Text (Highlight)';
+      if (el.classList.contains('text-condensed-styled')) return 'Text (Tag)';
+      if (el.classList.contains('text-purple-styled')) return 'Text (Display)';
+      if (el.classList.contains('text-outline-styled')) return 'Text (Outline)';
+      if (el.classList.contains('dock-item')) return 'Dock Button';
+      if (el.classList.contains('brotype-project-card')) return 'Project Card';
+      if (el.classList.contains('inline-photo-card')) return 'Resizable Photo';
       return `Frame (${el.tagName.toLowerCase()})`;
     };
 
@@ -391,9 +298,7 @@ function App() {
       if (isDragging) return;
       const target = e.target.closest(targetSelector);
       if (target) {
-        if (target.classList.contains('inline-photo-card')) {
-          frame.classList.remove('active');
-          hoveredEl = null;
+        if (target.classList.contains('inline-photo-card') && e.target.closest('.figma-handle')) {
           return;
         }
         hoveredEl = target;
@@ -434,7 +339,7 @@ function App() {
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const maxDrag = 60;
+      const maxDrag = 70;
 
       let finalDx = dx;
       let finalDy = dy;
@@ -443,10 +348,8 @@ function App() {
         finalDy = (dy / dist) * maxDrag;
       }
 
-      dragEl.style.transform = `translate(${finalDx}px, ${finalDy}px) rotate(${finalDx * 0.08}deg)`;
-      if (!dragEl.classList.contains('inline-photo-card')) {
-        updateFramePosition(dragEl);
-      }
+      dragEl.style.transform = `translate(${finalDx}px, ${finalDy}px) rotate(${finalDx * 0.06}deg)`;
+      updateFramePosition(dragEl);
 
       chip.style.top = `${e.clientY - 45}px`;
       chip.style.left = `${e.clientX + 15}px`;
@@ -470,7 +373,7 @@ function App() {
 
       const syncFrameOnSpringBack = (time) => {
         const elapsed = time - springBackStartTime;
-        if (elToClean && !elToClean.classList.contains('inline-photo-card')) {
+        if (elToClean) {
           updateFramePosition(elToClean);
         }
         if (elapsed < duration) {
@@ -531,7 +434,7 @@ function App() {
     };
   }, []);
 
-  // Built-in Resizable Photo Frame logic
+  // Resizable Photo Frame (About/Hero)
   useEffect(() => {
     const card = document.querySelector('.inline-photo-card');
     if (!card) return;
@@ -584,8 +487,8 @@ function App() {
         newHeight = resizeStartHeight - dy;
       }
       
-      newWidth = Math.max(45, Math.min(250, newWidth));
-      newHeight = Math.max(30, Math.min(180, newHeight));
+      newWidth = Math.max(80, Math.min(300, newWidth));
+      newHeight = Math.max(60, Math.min(220, newHeight));
       
       card.style.width = `${newWidth}px`;
       card.style.height = `${newHeight}px`;
@@ -623,77 +526,6 @@ function App() {
     };
   }, []);
 
-  // Section Header Underline Scroll Progress Hook
-  useEffect(() => {
-    const handleScrollProgress = () => {
-      const headers = document.querySelectorAll('.section-header');
-      headers.forEach(header => {
-        const rect = header.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        
-        let progress = 0;
-        if (rect.top < viewportHeight) {
-          progress = (viewportHeight - rect.top) / viewportHeight;
-        }
-        
-        // Clamp to a safe max of 1.8 to prevent overflow, allowing continuous growth
-        progress = Math.max(0, Math.min(1.8, progress));
-        header.style.setProperty('--scroll-progress', progress);
-      });
-    };
-
-    window.addEventListener('scroll', handleScrollProgress, { passive: true });
-    handleScrollProgress();
-
-    return () => {
-      window.removeEventListener('scroll', handleScrollProgress);
-    };
-  }, []);
-
-  // 3D Stacking Cards Scroll / Carousel effect
-  useEffect(() => {
-    const cards = document.querySelectorAll('.skill-card-stack');
-    if (!cards.length) return;
-
-    const handleStackScroll = () => {
-      const stickyTop = 150; 
-      
-      cards.forEach((card, index) => {
-        const rect = card.getBoundingClientRect();
-        
-        if (rect.top <= stickyTop) {
-          const offset = stickyTop - rect.top;
-          const cardHeight = rect.height || 380;
-          const progress = Math.min(Math.max(offset / cardHeight, 0), 1);
-          
-          const scale = 1 - progress * 0.06;
-          const brightness = 1 - progress * 0.45;
-          const translateY = -progress * 20;
-          
-          card.style.transform = `scale(${scale}) translateY(${translateY}px)`;
-          card.style.opacity = `${1 - progress * 0.1}`;
-          card.style.filter = `brightness(${brightness})`;
-        } else {
-          card.style.transform = 'scale(1) translateY(0px)';
-          card.style.opacity = '1';
-          card.style.filter = 'brightness(1)';
-        }
-      });
-    };
-
-    window.addEventListener('scroll', handleStackScroll, { passive: true });
-    handleStackScroll();
-    
-    return () => {
-      window.removeEventListener('scroll', handleStackScroll);
-    };
-  }, []);
-
-  const handleDropdownToggle = (e) => {
-    e.stopPropagation();
-    setDropdownOpen(!dropdownOpen);
-  };
-
   const handleFormFocus = () => {
     if (formStatus !== 'sending') {
       setFormStatus('idle');
@@ -703,16 +535,12 @@ function App() {
 
   const handleContactSubmit = async (e) => {
     e.preventDefault();
-    setTimeout(() => {
-    }, 100);
-
     const form = e.target;
     const name = form.elements['name']?.value?.trim() || "";
     const phone = form.elements['phone']?.value?.trim() || "";
     const email = form.elements['email']?.value?.trim() || "";
     const message = form.elements['message']?.value?.trim() || "";
 
-    // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setFormStatus('error');
@@ -747,7 +575,6 @@ function App() {
         setFormMessage('Thank you! Your message has been sent successfully.');
         form.reset();
 
-        // Also log contact submission to Google Sheets
         if (GOOGLE_SHEET_WEBAPP_URL) {
           try {
             await fetch(GOOGLE_SHEET_WEBAPP_URL, {
@@ -782,112 +609,126 @@ function App() {
 
   return (
     <>
-      {/* Interactive spotlight glow and grid */}
-      <div className="mouse-spotlight-glow"></div>
-      <div className="mouse-spotlight-grid"></div>
+      {/* Viewport Glowing Frame */}
+      <div className="viewport-border"></div>
+      <div className="viewport-border-glow"></div>
 
-      {/* Ambient background glows */}
+      {/* Background grid */}
+      <div className="brotype-grid-bg"></div>
+
+      {/* Floating Spotlight Glows */}
+      <div className="mouse-spotlight-glow"></div>
       <div className="glow-container">
-        <div className="ambient-glow glow-green"></div>
-        <div className="ambient-glow glow-orange"></div>
-        <div className="ambient-glow glow-blue"></div>
+        <div className="ambient-glow glow-purple-main"></div>
+        <div className="ambient-glow glow-blue-second"></div>
       </div>
 
-      {/* Main App Container */}
       <div className="app-wrapper">
+        
+        {/* Sticky Header */}
+        <header className={`brotype-header ${scrolled ? 'scrolled' : ''}`}>
+          <div className="header-left-placeholder"></div>
 
-        {/* Header / Floating Navigation Bar */}
-        <header className="navbar-container">
-          <div className="floating-nav">
-            <a href="#hero" className="nav-logo">
-              <div className="logo-box">
-                <img src={profileImg} alt="Logo" className="nav-logo-img" />
-              </div>
-            </a>
+          <nav className="header-nav">
+            <a href="#about" className={activeSection === 'about' ? 'active' : ''}>About</a>
+            <a href="#projects" className={activeSection === 'projects' ? 'active' : ''}>Work</a>
+            <a href="#skills" className={activeSection === 'skills' ? 'active' : ''}>Skills</a>
+            <a href="#contact" className={activeSection === 'contact' ? 'active' : ''}>Contact</a>
+          </nav>
 
-            <nav className="nav-links">
-              <a href="#about" className={`nav-link ${activeSection === 'about' ? 'active' : ''}`}>About</a>
-              <a href="#projects" className={`nav-link ${activeSection === 'projects' ? 'active' : ''}`}>Projects</a>
-              <a href="#skills" className={`nav-link ${activeSection === 'skills' ? 'active' : ''}`}>Skills</a>
-              <span className="nav-divider">|</span>
-              <div className="nav-dropdown" onClick={handleDropdownToggle}>
-                Socials
-                <svg className="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                <div className={`dropdown-menu ${dropdownOpen ? 'active' : ''}`}>
-                  <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-                  <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer">Behance</a>
-                  <a href="mailto:jeevanantham2002nkl@gmail.com">Email</a>
-                </div>
-              </div>
-            </nav>
+          <div className="header-actions">
+            <a href="#contact" className="header-touch-btn">Get in Touch</a>
           </div>
-
-          <a href="#contact" className="launch-btn">Get In Touch</a>
         </header>
 
-        {/* Mobile Header */}
-        <header className="mobile-header">
-          <div className="logo-box">
-            <img src={profileImg} alt="Logo" className="nav-logo-img" />
-          </div>
-          <button className="mobile-menu-btn" aria-label="Toggle Menu" onClick={() => { setMobileMenuOpen(!mobileMenuOpen); }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-          </button>
-        </header>
-
-        {/* Mobile Dropdown Navigation */}
-        <div className={`mobile-nav-menu ${mobileMenuOpen ? 'active' : ''}`}>
-          <a href="#about" className="mobile-nav-link" onClick={() => { setMobileMenuOpen(false); }}>About</a>
-          <a href="#projects" className="mobile-nav-link" onClick={() => { setMobileMenuOpen(false); }}>Projects</a>
-          <a href="#skills" className="mobile-nav-link" onClick={() => { setMobileMenuOpen(false); }}>Skills</a>
-          <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" className="mobile-nav-link" onClick={() => { setMobileMenuOpen(false); }}>LinkedIn</a>
-          <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" className="mobile-nav-link" onClick={() => { setMobileMenuOpen(false); }}>Behance</a>
-          <a href="#contact" className="mobile-cta" onClick={() => { setMobileMenuOpen(false); }}>Get In Touch</a>
+        {/* Floating Bottom Nav Dock */}
+        <div className="floating-dock">
+          <a href="#about" className={`dock-item ${activeSection === 'about' ? 'active' : ''}`} title="About">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </a>
+          <a href="#projects" className={`dock-item ${activeSection === 'projects' ? 'active' : ''}`} title="Work">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+            </svg>
+          </a>
+          <a href="#skills" className={`dock-item ${activeSection === 'skills' ? 'active' : ''}`} title="Skills">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+          </a>
+          <a href="#contact" className={`dock-item ${activeSection === 'contact' ? 'active' : ''}`} title="Contact">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <polyline points="22,6 12,13 2,6" />
+            </svg>
+          </a>
         </div>
 
-        {/* 1️⃣ Landing / Hero Section */}
+        {/* 1️⃣ Hero Section */}
         <section className="hero-section" id="hero">
-          <div className="hero-container">
-            <h1 className="hero-name">
-              Hi, I'm <span className="inline-photo-card">
-                <span className="photo-wrapper">
-                  <img src={profileImg} alt="Jeevanantham" className="inline-profile-img" />
+          <div className="hero-content">
+            <h1 className="expressive-tagline-title">
+              <div className="hero-title-row row-1">
+                <span className="text-normal im-wrapper">
+                  I'm
+                  <div className="hero-tag-badge">
+                    Hi... <span className="shaking-hand">👋</span>
+                  </div>
                 </span>
-                <div className="photo-figma-frame">
-                  <span className="photo-figma-badge">Photo</span>
-                  <div className="figma-handle handle-tl"></div>
-                  <div className="figma-handle handle-tr"></div>
-                  <div className="figma-handle handle-bl"></div>
-                  <div className="figma-handle handle-br"></div>
-                </div>
-              </span> Jeevanantham
+                <span className="inline-photo-card">
+                  <span className="photo-wrapper">
+                    <img src={profileImg} alt="Jeevanantham" className="inline-profile-img" />
+                  </span>
+                  <div className="photo-figma-frame">
+                    <span className="photo-figma-badge">Photo</span>
+                    <div className="figma-handle handle-tl"></div>
+                    <div className="figma-handle handle-tr"></div>
+                    <div className="figma-handle handle-bl"></div>
+                    <div className="figma-handle handle-br"></div>
+                  </div>
+                </span>
+                <span className="text-name-styled">Jeevanantham</span>
+              </div>
+              <div className="hero-title-row row-2">
+                <span className="text-yellow-styled">UI/UX</span>
+                <span className="text-purple-styled">
+                  Des
+                  <span className="dotless-i-wrapper">
+                    <span className="i-dot-circle-glow"></span>
+                    ı
+                  </span>
+                  gner
+                </span>
+              </div>
             </h1>
-            <h2 className="hero-title">UI/UX & Visual Designer</h2>
-            <p className="hero-tagline">Designing clarity from complexity — crafting high-impact enterprise SaaS platforms & scalable design systems.</p>
 
-            <div className="hero-actions">
-              <a href="#projects" className="btn btn-primary">
-                <span>View My Work</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </a>
-              <a href="#contact" className="btn btn-secondary">Get In Touch</a>
-            </div>
-
-            <div className="hero-chips">
-              <div className="hero-chip">
-                <span className="chip-highlight">18+</span> Projects
-              </div>
-              <div className="hero-chip">
-                <span className="chip-highlight">3+ Yrs</span> Exp.
-              </div>
-              <div className="hero-chip">
-                <span className="pulse-dot"></span> Active Deloitte Contractor
+            <div className="hero-bio-brotype">
+              <p className="hero-tagline">
+                Designing clarity from complexity — crafting high-impact enterprise SaaS platforms & scalable design systems.
+              </p>
+              <div className="hero-status-pills">
+                <div className="status-pill-item">
+                  <span className="status-dot pulsing"></span>
+                  <span>Active Deloitte Contractor</span>
+                </div>
+                <div className="status-pill-item">
+                  <span>Namakkal, India</span>
+                </div>
+                <div className="status-pill-item">
+                  <span>{calculateExperience()} Exp</span>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 2️⃣ Trust / Marquee Strip */}
+        {/* 2️⃣ Marquee Strip */}
         <div className="marquee-strip">
           <div className="marquee-content">
             <span className="marquee-item"><span className="bullet">•</span> Figma</span>
@@ -899,7 +740,7 @@ function App() {
             <span className="marquee-item"><span className="bullet">•</span> Wireframing</span>
             <span className="marquee-item"><span className="bullet">•</span> Prototyping</span>
 
-            {/* Duplicate for seamless looping */}
+            {/* Seamless Loop Duplicate */}
             <span className="marquee-item"><span className="bullet">•</span> Figma</span>
             <span className="marquee-item"><span className="bullet">•</span> UI/UX Design</span>
             <span className="marquee-item"><span className="bullet">•</span> Design Systems</span>
@@ -911,107 +752,56 @@ function App() {
           </div>
         </div>
 
-        {/* 3️⃣ About Me Section */}
+        {/* 3️⃣ About Section */}
         <section className="about-section" id="about">
-          <div className="section-header reveal reveal-slide-up">
-            <span className="section-tag">About Me</span>
-            <h2 className="section-title">Design with Purpose</h2>
+          <div className="recent-works-header-container">
+            <span className="recent-works-circle circle-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </span>
+            <h2 className="recent-works-title">ABOUT</h2>
+            <span className="recent-works-circle circle-right">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+            </span>
           </div>
-
           <div className="about-grid">
-            {/* Left Card: Profile Passport */}
-            <div className="about-profile-card reveal reveal-slide-right">
+            {/* Left Card: Passport Image Card */}
+            <div className="about-profile-card">
               <div className="profile-image-container">
                 <div className="profile-image-ring"></div>
                 <img src={profileImg} alt="Jeevanantham Jayaraj" className="profile-avatar" />
               </div>
-
+              
               <div className="profile-meta">
                 <h3>Jeevanantham Jayaraj</h3>
                 <p className="profile-role">UI/UX & Visual Designer</p>
                 <div className="profile-info-pill-container">
-                  <span className="profile-pill">
-                    <svg className="profile-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                      <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                    Namakkal, India
-                  </span>
-                  <span className="profile-pill">
-                    <svg className="profile-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                    </svg>
-                    {calculateExperience()} Exp
-                  </span>
+                  <span className="profile-pill">Namakkal, India</span>
+                  <span className="profile-pill">{calculateExperience()} Exp</span>
                 </div>
               </div>
 
               <div className="profile-skills-box">
                 <h4>Primary Stack</h4>
                 <div className="skill-tags-group">
-                  <span className="skill-tag-badge figma" title="Figma">
-                    <svg className="tech-logo" viewBox="0 0 12 18" width="12" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '2px'}}>
-                      <path d="M3 0C1.35 0 0 1.35 0 3C0 4.65 1.35 6 3 6H6V0H3Z" fill="#F24E1E"/>
-                      <path d="M3 6C1.35 6 0 7.35 0 9C0 10.65 1.35 12 3 12H6V6H3Z" fill="#A259FF"/>
-                      <path d="M3 12C1.35 12 0 13.35 0 15C0 16.65 1.35 18 3 18C4.65 18 6 16.65 6 15V12H3Z" fill="#1ABC9C"/>
-                      <path d="M9 6C10.65 6 12 7.35 12 9C12 10.65 10.65 12 9 12C7.35 12 6 10.65 6 9C6 7.35 7.35 6 9 6Z" fill="#0ACF83"/>
-                      <path d="M9 0C10.65 0 12 1.35 12 3C12 4.65 10.65 6 9 6H6V0H9Z" fill="#FF7262"/>
-                    </svg>
-                    Figma
-                  </span>
-                  
-                  <span className="skill-tag-badge adobe-xd" title="Adobe XD">
-                    <svg className="tech-logo" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '2px'}}>
-                      <rect width="24" height="24" rx="4" fill="#2E001F"/>
-                      <rect x="1" y="1" width="22" height="22" rx="3" fill="none" stroke="#FF2BC2" strokeWidth="1.5"/>
-                      <text x="12" y="15.5" fontSize="10.5" fontWeight="900" fontFamily="-apple-system, sans-serif" fill="#FF61D5" textAnchor="middle">Xd</text>
-                    </svg>
-                    Adobe XD
-                  </span>
-                  
-                  <span className="skill-tag-badge illustrator" title="Illustrator">
-                    <svg className="tech-logo" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '2px'}}>
-                      <rect width="24" height="24" rx="4" fill="#261300"/>
-                      <rect x="1" y="1" width="22" height="22" rx="3" fill="none" stroke="#FF9A00" strokeWidth="1.5"/>
-                      <text x="12" y="15.5" fontSize="10.5" fontWeight="900" fontFamily="-apple-system, sans-serif" fill="#FFB033" textAnchor="middle">Ai</text>
-                    </svg>
-                    Illustrator
-                  </span>
-                  
-                  <span className="skill-tag-badge photoshop" title="Photoshop">
-                    <svg className="tech-logo" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '2px'}}>
-                      <rect width="24" height="24" rx="4" fill="#001C2B"/>
-                      <rect x="1" y="1" width="22" height="22" rx="3" fill="none" stroke="#31A8FF" strokeWidth="1.5"/>
-                      <text x="12" y="15.5" fontSize="10.5" fontWeight="900" fontFamily="-apple-system, sans-serif" fill="#70C5FF" textAnchor="middle">Ps</text>
-                    </svg>
-                    Photoshop
-                  </span>
-
-                  <span className="skill-tag-badge premiere-pro" title="Premiere Pro">
-                    <svg className="tech-logo" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '2px'}}>
-                      <rect width="24" height="24" rx="4" fill="#14002B"/>
-                      <rect x="1" y="1" width="22" height="22" rx="3" fill="none" stroke="#EA77FF" strokeWidth="1.5"/>
-                      <text x="12" y="15.5" fontSize="10.5" fontWeight="900" fontFamily="-apple-system, sans-serif" fill="#F3B3FF" textAnchor="middle">Pr</text>
-                    </svg>
-                    Premiere Pro
-                  </span>
-
-                  <span className="skill-tag-badge indesign" title="InDesign">
-                    <svg className="tech-logo" viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg" style={{marginRight: '2px'}}>
-                      <rect width="24" height="24" rx="4" fill="#2B0018"/>
-                      <rect x="1" y="1" width="22" height="22" rx="3" fill="none" stroke="#FF1A8B" strokeWidth="1.5"/>
-                      <text x="12" y="15.5" fontSize="10.5" fontWeight="900" fontFamily="-apple-system, sans-serif" fill="#FF70B5" textAnchor="middle">Id</text>
-                    </svg>
-                    InDesign
-                  </span>
+                  <span className="skill-tag-badge figma" title="Figma">Figma</span>
+                  <span className="skill-tag-badge adobe-xd" title="Adobe XD">Adobe XD</span>
+                  <span className="skill-tag-badge illustrator" title="Illustrator">Illustrator</span>
+                  <span className="skill-tag-badge photoshop" title="Photoshop">Photoshop</span>
+                  <span className="skill-tag-badge premiere-pro" title="Premiere Pro">Premiere Pro</span>
+                  <span className="skill-tag-badge indesign" title="InDesign">InDesign</span>
                 </div>
               </div>
             </div>
 
-            {/* Right Card: Bio and Core Pillars */}
-            <div className="about-content-card reveal reveal-slide-left">
+            {/* Right Card: Content */}
+            <div className="about-content-card">
               <div className="about-bio-card">
+                <h2 className="about-heading-main">Design with Purpose</h2>
                 <p className="about-lead-text">
                   I am a UI/UX Designer with a <strong>Computer Science Engineering</strong> background, specializing in translating complex enterprise workflows into elegant, functional SaaS dashboards.
                 </p>
@@ -1051,7 +841,8 @@ function App() {
             </div>
           </div>
 
-          <div className="impact-grid-new reveal reveal-slide-up" style={{marginTop: '3.5rem', transitionDelay: '0.1s'}}>
+          {/* Stats Grid */}
+          <div className="impact-grid-new">
             <div className="impact-card-new">
               <span className="impact-stat-number">18+</span>
               <span className="impact-stat-label">Projects Delivered</span>
@@ -1075,156 +866,247 @@ function App() {
           </div>
         </section>
 
-        {/* 4️⃣ Selected Work / Projects Section */}
-        <section className="projects-section" id="projects">
-          <div className="section-header reveal reveal-slide-up">
-            <span className="section-tag">Portfolio</span>
-            <h2 className="section-title">Projects that made an impact</h2>
+        {/* 4️⃣ Projects Section */}
+        <section className="projects-section-brotype" id="projects">
+          <div className="recent-works-header-container">
+            <span className="recent-works-circle circle-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </span>
+            <h2 className="recent-works-title">MY WORKS</h2>
+            <span className="recent-works-circle circle-right">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+              </svg>
+            </span>
           </div>
 
-          <div className="projects-container">
-            {/* Featured Project (Big Card) */}
-            <div className="project-card featured-project reveal reveal-slide-up">
-              <div className="project-image-wrapper">
-                <div className="project-mockup-bg featured-gradient">
-                  <div className="mockup-ui">
-                    <div className="mockup-header">
-                      <span className="dot red"></span><span className="dot yellow"></span><span className="dot green"></span>
-                      <div className="mockup-search">deloitte-saas-dashboard.internal</div>
-                    </div>
-                    <div className="mockup-body">
-                      <div className="sidebar-mock"></div>
-                      <div className="content-mock">
-                        <div className="card-row">
-                          <div className="card-mock"></div>
-                          <div className="card-mock"></div>
-                          <div className="card-mock"></div>
-                        </div>
-                        <div className="chart-mock"></div>
+          <div className="projects-container-brotype">
+            
+            {/* Project 1: Deloitte Dashboard */}
+            <div className="brotype-project-card card-deloitte">
+              <div className="project-card-left">
+                <h3 className="project-card-title">Deloitte</h3>
+                <p className="project-card-desc">A unified analytics dashboard that aggregates telemetry, workload allocation, and real-time alerts. Re-architected user flows to reduce task-completion time by 40% and improve developer handoff accuracy.</p>
+                <div className="project-card-meta">
+                  <div className="meta-col">Figma</div>
+                  <div className="meta-col">Design Tokens</div>
+                  <div className="meta-col">Enterprise SaaS</div>
+                  <div className="meta-col">Usability Testing</div>
+                </div>
+                <div className="project-arrow-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="7" y1="17" x2="17" y2="7"></line>
+                    <polyline points="7 7 17 7 17 17"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div className="project-card-right">
+                <div className="mockup-ui">
+                  <div className="mockup-header">
+                    <span className="dot red"></span><span className="dot yellow"></span><span className="dot green"></span>
+                    <div className="mockup-search">deloitte.saas.dashboard</div>
+                  </div>
+                  <div className="mockup-body">
+                    <div className="sidebar-mock"></div>
+                    <div className="content-mock">
+                      <div className="card-row">
+                        <div className="card-mock"></div>
+                        <div className="card-mock"></div>
+                        <div className="card-mock"></div>
                       </div>
+                      <div className="chart-mock"></div>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <div className="project-info">
-                <span className="project-tag">Enterprise SaaS / UI/UX Design</span>
-                <h3 className="project-title">Deloitte Operations & Data Intelligence Dashboard</h3>
-                <p className="project-desc">A unified analytics dashboard that aggregates telemetry, workload allocation, and real-time alerts. Re-architected user flows to reduce task-completion time by 40% and improve developer handoff accuracy.</p>
-                <div className="project-tools">
-                  <span className="tool-tag">Figma</span>
-                  <span className="tool-tag">Design Tokens</span>
-                  <span className="tool-tag">Enterprise SaaS</span>
-                  <span className="tool-tag">Usability Testing</span>
+            {/* Project 2: Apex Neobank */}
+            <div className="brotype-project-card card-neobank">
+              <div className="project-card-left">
+                <h3 className="project-card-title">Apex Neobank</h3>
+                <p className="project-card-desc">Complete end-to-end design system, mobile UI/UX, and visual brand identity for a modern consumer neobanking service.</p>
+                <div className="project-card-meta">
+                  <div className="meta-col">Figma</div>
+                  <div className="meta-col">Illustrator</div>
+                  <div className="meta-col">Mobile UI</div>
+                </div>
+                <div className="project-arrow-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="7" y1="17" x2="17" y2="7"></line>
+                    <polyline points="7 7 17 7 17 17"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div className="project-card-right">
+                <div className="mockup-phone-wrapper">
+                  <div className="mockup-phone">
+                    <div className="phone-screen">
+                      <div className="phone-header">
+                        <span className="phone-logo">APEX</span>
+                        <span className="phone-battery">94%</span>
+                      </div>
+                      <div className="phone-balance-card">
+                        <span className="balance-label">Balance</span>
+                        <span className="balance-amount">$5,234.00</span>
+                      </div>
+                      <div className="phone-actions-row">
+                        <span className="phone-action-btn">Send</span>
+                        <span className="phone-action-btn">Request</span>
+                        <span className="phone-action-btn">Top Up</span>
+                      </div>
+                      <div className="phone-chart-area"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Grid of Smaller Projects */}
-            <div className="projects-grid reveal-stagger-container">
-              {/* Project 1 */}
-              <div className="project-card grid-project reveal reveal-slide-up">
-                <div className="project-image-wrapper">
-                  <div className="project-mockup-bg proj-orange-grad">
-                    <div className="mockup-circle"></div>
-                  </div>
+            {/* Project 3: AeroSpace AI Copilot */}
+            <div className="brotype-project-card card-aerospace">
+              <div className="project-card-left">
+                <h3 className="project-card-title">AeroSpace AI</h3>
+                <p className="project-card-desc">Interactive conversational assistant for technicians to retrieve manuals and telemetry data using Natural Language processing.</p>
+                <div className="project-card-meta">
+                  <div className="meta-col">Figma</div>
+                  <div className="meta-col">Micro-interactions</div>
+                  <div className="meta-col">AI Interfaces</div>
                 </div>
-                <div className="project-info">
-                  <span className="project-tag">AI/UX / Interaction Design</span>
-                  <h3 className="project-title">AeroSpace AI Copilot</h3>
-                  <p className="project-desc">Interactive conversational assistant for technicians to retrieve manuals and telemetry data using Natural Language processing.</p>
-                  <div className="project-tools">
-                    <span className="tool-tag">Figma</span>
-                    <span className="tool-tag">Micro-interactions</span>
-                    <span className="tool-tag">AI Interfaces</span>
-                  </div>
+                <div className="project-arrow-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="7" y1="17" x2="17" y2="7"></line>
+                    <polyline points="7 7 17 7 17 17"></polyline>
+                  </svg>
                 </div>
               </div>
-
-              {/* Project 2 */}
-              <div className="project-card grid-project reveal reveal-slide-up">
-                <div className="project-image-wrapper">
-                  <div className="project-mockup-bg proj-blue-grad">
-                    <div className="mockup-card-ui"></div>
-                  </div>
-                </div>
-                <div className="project-info">
-                  <span className="project-tag">Mobile App / Branding</span>
-                  <h3 className="project-title">Apex Neobank Mobile App</h3>
-                  <p className="project-desc">Complete end-to-end design system, mobile UI/UX, and visual brand identity for a modern consumer neobanking service.</p>
-                  <div className="project-tools">
-                    <span className="tool-tag">Figma</span>
-                    <span className="tool-tag">Illustrator</span>
-                    <span className="tool-tag">Mobile UI</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Project 3 */}
-              <div className="project-card grid-project reveal reveal-slide-up">
-                <div className="project-image-wrapper">
-                  <div className="project-mockup-bg proj-purple-grad">
-                    <div className="mockup-lines"></div>
-                  </div>
-                </div>
-                <div className="project-info">
-                  <span className="project-tag">Design Systems</span>
-                  <h3 className="project-title">OmniSystem Library</h3>
-                  <p className="project-desc">Scaling multi-brand enterprise platforms with a unified design system of over 200+ reusable Figma components and token architectures.</p>
-                  <div className="project-tools">
-                    <span className="tool-tag">Figma</span>
-                    <span className="tool-tag">Tokens Studio</span>
-                    <span className="tool-tag">React Handoff</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Project 4 */}
-              <div className="project-card grid-project reveal reveal-slide-up">
-                <div className="project-image-wrapper">
-                  <div className="project-mockup-bg proj-yellow-grad">
-                    <div className="mockup-chart-ui"></div>
-                  </div>
-                </div>
-                <div className="project-info">
-                  <span className="project-tag">Web Portal / SaaS</span>
-                  <h3 className="project-title">HealthTech Patient Portal</h3>
-                  <p className="project-desc">A responsive health tracking portal designed with an emphasis on WCAG 2.1 accessibility standards and patient data privacy.</p>
-                  <div className="project-tools">
-                    <span className="tool-tag">Figma</span>
-                    <span className="tool-tag">WCAG 2.1</span>
-                    <span className="tool-tag">Responsive Design</span>
+              <div className="project-card-right">
+                <div className="mockup-phone-wrapper">
+                  <div className="mockup-phone dark-theme">
+                    <div className="phone-screen">
+                      <div className="phone-header">
+                        <span className="phone-logo">AeroAI</span>
+                        <span className="phone-status">Online</span>
+                      </div>
+                      <div className="chat-bubble bot">Checking turbine telemetry data...</div>
+                      <div className="chat-bubble user">Status on Fan Blade 4?</div>
+                      <div className="chat-bubble bot highlighted">All sensors normal. Rotation speed: 2,400 RPM. Temp: 85°C.</div>
+                      <div className="chat-input-mock">Send query...</div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Project 4: OmniSystem Library */}
+            <div className="brotype-project-card card-omnisystem">
+              <div className="project-card-left">
+                <h3 className="project-card-title">OmniSystem</h3>
+                <p className="project-card-desc">Scaling multi-brand enterprise platforms with a unified design system of over 200+ reusable Figma components and token architectures.</p>
+                <div className="project-card-meta">
+                  <div className="meta-col">Figma</div>
+                  <div className="meta-col">Tokens Studio</div>
+                  <div className="meta-col">React Handoff</div>
+                </div>
+                <div className="project-arrow-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="7" y1="17" x2="17" y2="7"></line>
+                    <polyline points="7 7 17 7 17 17"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div className="project-card-right">
+                <div className="mockup-ui tokens-mockup">
+                  <div className="tokens-grid">
+                    <div className="token-card-ui"><span className="color-preview blue"></span><code>--color-blue: #3b82..</code></div>
+                    <div className="token-card-ui"><span className="color-preview teal"></span><code>--color-teal: #1abc..</code></div>
+                    <div className="token-card-ui"><span className="color-preview yellow"></span><code>--color-yellow: #ffd0..</code></div>
+                    <div className="token-card-ui"><code>--spacing-md: 16px</code></div>
+                    <div className="token-card-ui"><code>--border-radius: 12px</code></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Project 5: HealthTech Patient Portal */}
+            <div className="brotype-project-card card-healthtech">
+              <div className="project-card-left">
+                <h3 className="project-card-title">HealthTech</h3>
+                <p className="project-card-desc">A responsive health tracking portal designed with an emphasis on WCAG 2.1 accessibility standards and patient data privacy.</p>
+                <div className="project-card-meta">
+                  <div className="meta-col">Figma</div>
+                  <div className="meta-col">WCAG 2.1</div>
+                  <div className="meta-col">Responsive Design</div>
+                </div>
+                <div className="project-arrow-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="7" y1="17" x2="17" y2="7"></line>
+                    <polyline points="7 7 17 7 17 17"></polyline>
+                  </svg>
+                </div>
+              </div>
+              <div className="project-card-right">
+                <div className="mockup-ui">
+                  <div className="mockup-header">
+                    <span className="dot red"></span><span className="dot yellow"></span><span className="dot green"></span>
+                    <div className="mockup-search">healthtech.portal.internal</div>
+                  </div>
+                  <div className="health-content-grid">
+                    <div className="health-sidebar-mock"></div>
+                    <div className="health-body-mock">
+                      <div className="health-stat-pill">Heart Rate: 72 bpm</div>
+                      <div className="health-chart-mock"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </section>
 
-        {/* 5️⃣ Skills & Tools Section */}
+        {/* 5️⃣ Interactive Skills Section */}
         <div className="skills-scroll-wrapper" ref={skillsWrapperRef}>
-          <section className="skills-section" id="skills">
-            <div className="section-header">
-              <span className="section-tag">Expertise</span>
-              <h2 className="section-title">What I bring to your team</h2>
+          <section className="skills-section-brotype" id="skills">
+            <div className="recent-works-header-container">
+              <span className="recent-works-circle circle-left">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="16 18 22 12 16 6"></polyline>
+                  <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+              </span>
+              <h2 className="recent-works-title">EXPERTISE</h2>
+              <span className="recent-works-circle circle-right">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="9" y1="3" x2="9" y2="21"></line>
+                  <line x1="15" y1="3" x2="15" y2="21"></line>
+                  <line x1="3" y1="9" x2="21" y2="9"></line>
+                  <line x1="3" y1="15" x2="21" y2="15"></line>
+                </svg>
+              </span>
             </div>
 
             <div className="simple-canvas-container">
-              {/* Animated Figma Multiplayer Cursors */}
+              {/* Figma Multiplayer Cursors */}
               <div className="figma-cursor cursor-blue">
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 3v15.2l3.8-3.7 3.3 7.8 2.8-1.2-3.3-7.8h5.1z"/></svg>
                 <span className="cursor-label">Jeeva</span>
               </div>
+              <div className="figma-cursor cursor-purple-user">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 3v15.2l3.8-3.7 3.3 7.8 2.8-1.2-3.3-7.8h5.1z"/></svg>
+                <span className="cursor-label">Client</span>
+              </div>
 
               {/* Selected Figma Frame Card */}
               <div className={`figma-frame-card-simple ${skillsList[activeSkillIndex].theme}`}>
-                {/* Figma Selection Handles on active frame corners */}
                 <span className="corner-handle tl"></span>
                 <span className="corner-handle tr"></span>
                 <span className="corner-handle bl"></span>
                 <span className="corner-handle br"></span>
                 
-                {/* Floating blue Figma label */}
                 <div className="figma-frame-badge">
                   Frame: {skillsList[activeSkillIndex].title}
                 </div>
@@ -1249,7 +1131,7 @@ function App() {
                 </div>
               </div>
 
-              {/* Simple slide navigation */}
+              {/* Carousel controls */}
               <div className="figma-carousel-controls">
                 <button 
                   className="figma-nav-btn prev-btn" 
@@ -1291,212 +1173,160 @@ function App() {
           </section>
         </div>
 
-
-
-
-
-        {/* 8️⃣ Contact Section */}
-        <section className="contact-section" id="contact">
-          <div className="section-header reveal reveal-slide-up">
-            <span className="section-tag">Get in Touch</span>
-            <h2 className="section-title">Let's build something great</h2>
+        {/* 6️⃣ Photos / Off-Screen Stories Section */}
+        <section className="offscreen-section" id="stories">
+          <div className="recent-works-header-container">
+            <span className="recent-works-circle circle-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+            </span>
+            <h2 className="recent-works-title">STORIES</h2>
+            <span className="recent-works-circle circle-right">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+              </svg>
+            </span>
           </div>
+          
+          <div className="offscreen-grid">
+            <div className="offscreen-card">
+              <span className="story-emoji">☕</span>
+              <h4>Fueled by Caffeine</h4>
+              <p>Designing interfaces usually requires a steady stream of filter coffee and clean soundtracks.</p>
+            </div>
+            <div className="offscreen-card">
+              <span className="story-emoji">🧩</span>
+              <h4>System Thinker</h4>
+              <p>I enjoy dissecting grid systems, design schemas, and automating developer workflows.</p>
+            </div>
+            <div className="offscreen-card">
+              <span className="story-emoji">🎨</span>
+              <h4>Vector Art</h4>
+              <p>When not wireframing SaaS platforms, I craft clean vector illustrations and brand marks.</p>
+            </div>
+          </div>
+        </section>
 
-          <div className="contact-grid">
-            {/* LEFT COLUMN: Links (4 folder cards + 1 banner) */}
-            <div className="contact-links-column reveal reveal-slide-right">
-              <div className="links-folder-grid">
-                {/* Email Card */}
-                <a href="mailto:jeevanantham2002nkl@gmail.com" className="folder-card link-folder-card">
-                  <svg className="folder-svg-bg" viewBox="0 0 605 103" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M605 59.8681C605 38.115 587.366 20.4807 565.613 20.4807L84.4537 20.4805C73.3433 20.4805 64.3365 29.4873 64.3365 40.5977C64.3365 51.7082 55.3297 60.7149 44.2192 60.7149H39.076C27.5248 60.7149 18.2138 70.1789 18.402 81.7285C18.5859 93.0151 27.7879 102.068 39.076 102.068H565.613C587.366 102.068 605 84.4341 605 62.681V59.8681Z" fill="currentColor"/>
-                    <circle cx="27.5" cy="27.5" r="27.5" transform="matrix(-1 0 0 1 55 0)" fill="currentColor"/>
-                  </svg>
-                  <div className="folder-icon-circle">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="folder-icon-svg">
-                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                      <polyline points="22,6 12,13 2,6" />
-                    </svg>
+        {/* 7️⃣ Contact Section */}
+        <section className="contact-section-brotype" id="contact">
+          <div className="recent-works-header-container">
+            <span className="recent-works-circle circle-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+            </span>
+            <h2 className="recent-works-title">CONTACT</h2>
+            <span className="recent-works-circle circle-right">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </span>
+          </div>
+          <div className="contact-grid-brotype">
+            {/* Left side: Message form */}
+            <div className="contact-form-column">
+              <h2 className="contact-form-title">Send a Message</h2>
+              <form className="contact-form-widget" onSubmit={handleContactSubmit}>
+                {formMessage && (
+                  <div className={`form-feedback ${formStatus === 'success' ? 'feedback-success' : 'feedback-error'}`}>
+                    {formMessage}
                   </div>
-                  <div className="folder-body">
-                    <span className="folder-card-label">Email</span>
-                    <span className="folder-card-value">jeevanantham2002nkl@gmail.com</span>
-                  </div>
-                </a>
-
-                {/* LinkedIn Card */}
-                <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" className="folder-card link-folder-card">
-                  <svg className="folder-svg-bg" viewBox="0 0 605 103" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M605 59.8681C605 38.115 587.366 20.4807 565.613 20.4807L84.4537 20.4805C73.3433 20.4805 64.3365 29.4873 64.3365 40.5977C64.3365 51.7082 55.3297 60.7149 44.2192 60.7149H39.076C27.5248 60.7149 18.2138 70.1789 18.402 81.7285C18.5859 93.0151 27.7879 102.068 39.076 102.068H565.613C587.366 102.068 605 84.4341 605 62.681V59.8681Z" fill="currentColor"/>
-                    <circle cx="27.5" cy="27.5" r="27.5" transform="matrix(-1 0 0 1 55 0)" fill="currentColor"/>
-                  </svg>
-                  <div className="folder-icon-circle">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" className="folder-icon-svg">
-                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                    </svg>
-                  </div>
-                  <div className="folder-body">
-                    <span className="folder-card-label">LinkedIn</span>
-                    <span className="folder-card-value">jeeva-j1426</span>
-                  </div>
-                </a>
-
-                {/* Behance Card */}
-                <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" className="folder-card link-folder-card">
-                  <svg className="folder-svg-bg" viewBox="0 0 605 103" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M605 59.8681C605 38.115 587.366 20.4807 565.613 20.4807L84.4537 20.4805C73.3433 20.4805 64.3365 29.4873 64.3365 40.5977C64.3365 51.7082 55.3297 60.7149 44.2192 60.7149H39.076C27.5248 60.7149 18.2138 70.1789 18.402 81.7285C18.5859 93.0151 27.7879 102.068 39.076 102.068H565.613C587.366 102.068 605 84.4341 605 62.681V59.8681Z" fill="currentColor"/>
-                    <circle cx="27.5" cy="27.5" r="27.5" transform="matrix(-1 0 0 1 55 0)" fill="currentColor"/>
-                  </svg>
-                  <div className="folder-icon-circle">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" className="folder-icon-svg">
-                      <path d="M16.969 16.927a2.561 2.561 0 0 0 1.901.677 2.501 2.501 0 0 0 1.531-.475c.362-.235.636-.584.779-.99h2.585a5.091 5.091 0 0 1-1.9 2.896 5.292 5.292 0 0 1-3.091.88 5.839 5.839 0 0 1-2.284-.433 4.871 4.871 0 0 1-1.723-1.211 5.657 5.657 0 0 1-1.08-1.874 7.057 7.057 0 0 1-.383-2.393c-.005-.8.129-1.595.396-2.349a5.313 5.313 0 0 1 5.088-3.604 4.87 4.87 0 0 1 2.376.563c.661.362 1.231.87 1.668 1.485a6.2 6.2 0 0 1 .943 2.133c.194.821.263 1.666.205 2.508h-7.699c-.063.79.184 1.574.688 2.187ZM6.947 4.084a8.065 8.065 0 0 1 1.928.198 4.29 4.29 0 0 1 1.49.638c.418.303.748.711.958 1.182.241.579.357 1.203.341 1.83a3.506 3.506 0 0 1-.506 1.961 3.726 3.726 0 0 1-1.503 1.287 3.588 3.588 0 0 1 2.027 1.437c.464.747.697 1.615.67 2.494a4.593 4.593 0 0 1-.423 2.032 3.945 3.945 0 0 1-1.163 1.413 5.114 5.114 0 0 1-1.683.807 7.135 7.135 0 0 1-1.928.259H0V4.084h6.947Zm-.235 12.9c.308.004.616-.029.916-.099a2.18 2.18 0 0 0 .766-.332c.228-.158.411-.371.534-.619.142-.317.208-.663.191-1.009a2.08 2.08 0 0 0-.642-1.715 2.618 2.618 0 0 0-1.696-.505h-3.54v4.279h3.471Zm13.635-5.967a2.13 2.13 0 0 0-1.654-.619 2.336 2.336 0 0 0-1.163.259 2.474 2.474 0 0 0-.738.62 2.359 2.359 0 0 0-.396.792c-.074.239-.12.485-.137.734h4.769a3.239 3.239 0 0 0-.679-1.785l-.002-.001Zm-13.813-.648a2.254 2.254 0 0 0 1.423-.433c.399-.355.607-.88.56-1.413a1.916 1.916 0 0 0-.178-.891 1.298 1.298 0 0 0-.495-.533 1.851 1.851 0 0 0-.711-.274 3.966 3.966 0 0 0-.835-.073H3.241v3.631h3.293v-.014ZM21.62 5.122h-5.976v1.527h5.976V5.122Z"/>
-                    </svg>
-                  </div>
-                  <div className="folder-body">
-                    <span className="folder-card-label">Behance</span>
-                    <span className="folder-card-value">jeevananthamj</span>
-                  </div>
-                </a>
-
-                {/* Phone Card */}
-                <a href="tel:+917339042578" className="folder-card link-folder-card">
-                  <svg className="folder-svg-bg" viewBox="0 0 605 103" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M605 59.8681C605 38.115 587.366 20.4807 565.613 20.4807L84.4537 20.4805C73.3433 20.4805 64.3365 29.4873 64.3365 40.5977C64.3365 51.7082 55.3297 60.7149 44.2192 60.7149H39.076C27.5248 60.7149 18.2138 70.1789 18.402 81.7285C18.5859 93.0151 27.7879 102.068 39.076 102.068H565.613C587.366 102.068 605 84.4341 605 62.681V59.8681Z" fill="currentColor"/>
-                    <circle cx="27.5" cy="27.5" r="27.5" transform="matrix(-1 0 0 1 55 0)" fill="currentColor"/>
-                  </svg>
-                  <div className="folder-icon-circle">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="folder-icon-svg">
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                    </svg>
-                  </div>
-                  <div className="folder-body">
-                    <span className="folder-card-label">Phone</span>
-                    <span className="folder-card-value">+91 73390 42578</span>
-                  </div>
-                </a>
-              </div>
-
-              {/* Bottom Large Banner Card */}
-              <div className="contact-banner-card reveal reveal-slide-up">
-                <div className="banner-main-content">
-                  <span className="banner-emoji">🚀</span>
-                  <span className="banner-text">Let's design and code the future together</span>
+                )}
+                <div className="form-row">
+                  <input type="text" name="name" placeholder="Name" required disabled={formStatus === 'sending'} onFocus={handleFormFocus} />
+                  <input type="text" name="phone" placeholder="Phone" required disabled={formStatus === 'sending'} onFocus={handleFormFocus} />
                 </div>
-              </div>
+                <input type="email" name="email" placeholder="Email" required disabled={formStatus === 'sending'} onFocus={handleFormFocus} />
+                <textarea name="message" rows="4" placeholder="Your Message..." required disabled={formStatus === 'sending'} onFocus={handleFormFocus}></textarea>
+                <button type="submit" className="contact-submit-btn" disabled={formStatus === 'sending'}>
+                  {formStatus === 'sending' ? 'Sending...' : 'Send Message'}
+                </button>
+              </form>
             </div>
 
-            {/* RIGHT COLUMN: Mail Card (Form) */}
-            <div className="contact-form-column reveal reveal-slide-left">
-              <div className="folder-card form-folder-card">
-                <svg className="folder-svg-bg" viewBox="0 0 566 847" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M0 75C0 46.2812 23.2812 23 52 23H353.581C380.237 23 402.576 43.1564 405.307 69.672L408.013 95.9379C410.606 121.111 430.944 140.762 456.191 142.489L517.409 146.676C544.744 148.546 565.939 171.305 565.86 198.704L564.149 795.149C564.067 823.81 540.81 847 512.149 847H52C23.2812 847 0 823.719 0 795V75Z" fill="currentColor"/>
-                </svg>
-                
-                <div className="folder-body">
-                  <h3 className="form-folder-title">Send a Message</h3>
-
-                  <form className="folder-contact-form" onSubmit={handleContactSubmit}>
-                    {formMessage && (
-                      <div className={`form-feedback ${formStatus === 'success' ? 'feedback-success' : 'feedback-error'}`}>
-                        {formMessage}
-                      </div>
-                    )}
-
-                    <div className="form-row-dual">
-                      <div className="folder-input-wrapper">
-                        <input type="text" id="form-name" name="name" placeholder="Name" required disabled={formStatus === 'sending'} onFocus={handleFormFocus} />
-                      </div>
-                      <div className="folder-input-wrapper">
-                        <input type="text" id="form-phone" name="phone" placeholder="Phone" required disabled={formStatus === 'sending'} onFocus={handleFormFocus} />
-                      </div>
-                    </div>
-
-                    <div className="folder-input-wrapper">
-                      <input type="email" id="form-email" name="email" placeholder="Email" required disabled={formStatus === 'sending'} onFocus={handleFormFocus} />
-                    </div>
-
-                    <div className="folder-input-wrapper textarea-wrapper">
-                      <textarea id="form-message" name="message" rows="3" placeholder="Your Message..." required disabled={formStatus === 'sending'} onFocus={handleFormFocus}></textarea>
-                    </div>
-
-                    <button type="submit" className="folder-submit-btn" disabled={formStatus === 'sending'}>
-                      {formStatus === 'sending' ? 'Sending...' : 'Send Message'}
-                    </button>
-                  </form>
+            {/* Right side: Info and Clock */}
+            <div className="contact-info-column">
+              <div className="info-clock-box">
+                <span className="clock-timezone">Namakkal, India (IST)</span>
+                <span className="clock-time">{currentTime || "12:00:00 PM"}</span>
+              </div>
+              
+              <div className="info-details-box">
+                <div className="detail-item">
+                  <span className="detail-label">Email</span>
+                  <a href="mailto:jeevanantham2002nkl@gmail.com" className="detail-value">jeevanantham2002nkl@gmail.com</a>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Phone</span>
+                  <a href="tel:+917339042578" className="detail-value">+91 73390 42578</a>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Office Hours</span>
+                  <span className="detail-value">10:00 AM - 07:00 PM IST</span>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 9️⃣ Footer */}
-        <footer className="footer-section">
-          <div className="footer-decor-text">JEEVANANTHAM</div>
+        {/* 8️⃣ Footer */}
+        <footer className="footer-section-brotype">
+          <div className="footer-connect-title">CONNECT</div>
+          
+          <div className="footer-grid-brotype">
+            <div className="footer-links-group">
+              <div className="footer-link-item">
+                <svg className="link-triangle" viewBox="0 0 10 10" width="8" height="8"><polygon points="0 0, 10 5, 0 10" fill="currentColor"/></svg>
+                <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer">Linkedin</a>
+              </div>
+              <div className="footer-link-item">
+                <svg className="link-triangle" viewBox="0 0 10 10" width="8" height="8"><polygon points="0 0, 10 5, 0 10" fill="currentColor"/></svg>
+                <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer">Behance</a>
+              </div>
+              <div className="footer-link-item">
+                <svg className="link-triangle" viewBox="0 0 10 10" width="8" height="8"><polygon points="0 0, 10 5, 0 10" fill="currentColor"/></svg>
+                <a href="mailto:jeevanantham2002nkl@gmail.com">Email</a>
+              </div>
+            </div>
 
-          <div className="footer-container">
-            <div className="footer-main">
-              {/* Brand & Bio block */}
-              <div className="footer-brand-block">
-                <div className="footer-logo">
-                  <span>J</span>EEVANANTHAM
-                </div>
-                <p className="footer-bio">
-                  Designing clarity from complexity — crafting high-impact enterprise SaaS platforms & scalable design systems.
-                </p>
-                <div className="footer-status-badge">
-                  <span className="status-dot pulsing"></span>
-                  <span>Available for freelance opportunities</span>
+            <div className="footer-details-group">
+              <div className="footer-logo-brotype">
+                <span className="logo-j">J</span>EEVANANTHAM
+              </div>
+              <p className="footer-tagline-brotype">Designing clarity from complexity — enterprise SaaS systems & scalable design systems.</p>
+              
+              <div className="footer-badges-row">
+                <div className="footer-badge-item">
+                  <span className="badge-dot pulsing"></span>
+                  <span>Available for work</span>
                 </div>
                 {visitorCount !== null && (
-                  <div className="footer-visitor-badge">
-                    <span className="visitor-dot pulsing"></span>
-                    <span>
-                      Visitor #{visitorCount.toLocaleString()}
-                      {visitorGeo && ` • Connected from ${visitorGeo}`}
-                    </span>
+                  <div className="footer-badge-item">
+                    <span>Visitor #{visitorCount.toLocaleString()} {visitorGeo && `(${visitorGeo})`}</span>
                   </div>
                 )}
               </div>
-
-              {/* Nav columns */}
-              <div className="footer-nav-group">
-                <div className="footer-nav-col">
-                  <h4 className="footer-col-title">Navigation</h4>
-                  <ul className="footer-nav-links">
-                    <li><a href="#hero">Home</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#projects">Projects</a></li>
-                    <li><a href="#skills">Skills</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                  </ul>
-                </div>
-
-                <div className="footer-nav-col">
-                  <h4 className="footer-col-title">Socials</h4>
-                  <ul className="footer-nav-links">
-                    <li><a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
-                    <li><a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer">Behance</a></li>
-                    <li><a href="mailto:jeevanantham2002nkl@gmail.com">Email</a></li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Bar */}
-            <div className="footer-bottom-bar">
-              <p className="footer-copyright">
-                &copy; {new Date().getFullYear()} Jeevanantham Jayaraj. All rights reserved.
-              </p>
-              <button className="footer-back-to-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Scroll to top">
-                <span>Back to Top</span>
-                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="19" x2="12" y2="5"></line>
-                  <polyline points="5 12 12 5 19 12"></polyline>
-                </svg>
-              </button>
             </div>
           </div>
+
+          <div className="footer-bottom-brotype">
+            <p className="copyright-text">&copy; {new Date().getFullYear()} Jeevanantham Jayaraj. All rights reserved.</p>
+            <button className="back-to-top-btn" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+              <span>Back to Top</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="19" x2="12" y2="5"></line>
+                <polyline points="5 12 12 5 19 12"></polyline>
+              </svg>
+            </button>
+          </div>
         </footer>
+
       </div>
 
       {/* Figma Selection Overlay */}
