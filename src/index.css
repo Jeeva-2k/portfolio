@@ -2,9 +2,9 @@
    1. CORE VARIABLES & DESIGN TOKENS
    ========================================== */
 :root {
-    --bg-dark: #09080c;
-    --bg-card: rgba(20, 18, 30, 0.45);
-    --border-glow: rgba(255, 255, 255, 0.06);
+    --bg-dark: #000000;
+    --bg-card: rgba(12, 12, 16, 0.7);
+    --border-glow: rgba(255, 255, 255, 0.08);
 
     /* Accent Colors */
     --color-purple: #3b82f6;
@@ -70,58 +70,6 @@ html.figma-dragging-active * {
 }
 
 /* ==========================================
-   GLASSMORPHISM & FROSTED BLUR FOR ALL BOXES
-   ========================================== */
-.brotype-project-card,
-.draggable-skill-card,
-.offscreen-card,
-.contact-form-widget input,
-.contact-form-widget textarea,
-.contact-social-icon-btn,
-.info-clock-box,
-.tool-icon-chip,
-.about-social-icon-item,
-.about-social-email-item,
-.about-tools-bar,
-.meta-col,
-.skill-chip,
-.hero-badge-item,
-.pill-tag,
-.design-tag,
-.floating-bottom-dock,
-.header-nav,
-.project-card-right,
-.project-tech-chip,
-.skill-card-icon-badge,
-.contact-info-card,
-.current-work-card {
-    background: rgba(18, 16, 28, 0.45) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    backdrop-filter: blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
-}
-
-.tool-icon-chip:hover,
-.about-social-icon-item:hover,
-.about-social-email-item:hover,
-.contact-social-icon-btn:hover,
-.brotype-project-card:hover,
-.draggable-skill-card:hover,
-.offscreen-card:hover {
-    background: rgba(30, 25, 45, 0.65) !important;
-    border-color: rgba(59, 130, 246, 0.4) !important;
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.45), 0 0 25px rgba(59, 130, 246, 0.15) !important;
-}
-
-.contact-form-widget input:focus,
-.contact-form-widget textarea:focus {
-    background: rgba(30, 25, 45, 0.75) !important;
-    border-color: rgba(59, 130, 246, 0.6) !important;
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-}
-
-/* ==========================================
    3. VIEWPORT glowing frame
    ========================================== */
 .viewport-border {
@@ -151,7 +99,7 @@ html.figma-dragging-active * {
 /* ==========================================
    4. BACKGROUND EFFECTS
    ========================================== */
-/* Subtle violet grid overlay */
+/* Subtle dark grid overlay */
 .brotype-grid-bg {
     position: fixed;
     top: 0;
@@ -161,10 +109,10 @@ html.figma-dragging-active * {
     pointer-events: none;
     z-index: 0;
     background-image: 
-        linear-gradient(to right, rgba(59, 130, 246, 0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     background-size: 60px 60px;
-    opacity: 0.85;
+    opacity: 0.5;
 }
 
 /* Mouse spotlight glow radial gradient */
@@ -177,8 +125,8 @@ html.figma-dragging-active * {
     pointer-events: none;
     z-index: 0;
     background: radial-gradient(circle 250px at var(--mouse-x, 0px) var(--mouse-y, 0px),
-            rgba(59, 130, 246, 0.08) 0%,
-            rgba(59, 130, 246, 0.02) 60%,
+            rgba(59, 130, 246, 0.05) 0%,
+            rgba(59, 130, 246, 0.01) 60%,
             transparent 100%);
 }
 
@@ -200,7 +148,7 @@ html.figma-dragging-active * {
     height: 500px;
     border-radius: 50%;
     filter: blur(140px);
-    opacity: 0.1;
+    opacity: 0.04;
 }
 
 .glow-purple-main {
