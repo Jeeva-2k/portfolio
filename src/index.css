@@ -359,13 +359,13 @@ html.figma-dragging-active * {
     align-items: center;
     justify-content: center;
     vertical-align: middle;
-    width: 65px;
-    height: 46px;
-    margin: 0 8px;
+    width: clamp(100px, 11vw, 155px);
+    height: clamp(68px, 7.5vw, 105px);
+    margin: 0 12px;
     position: relative;
     overflow: visible;
-    transform: rotate(-8deg) translateY(-4px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transform: rotate(-6deg) translateY(-6px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     user-select: none;
 }
