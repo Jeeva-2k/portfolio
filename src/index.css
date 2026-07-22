@@ -781,18 +781,77 @@ html.figma-dragging-active * {
     overflow: visible;
 }
 
-.about-line-behind {
+.about-glitter-container {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) rotate(-12deg);
-    width: 125%;
-    height: 95px;
-    background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, rgba(59, 130, 246, 0.45) 50%, rgba(26, 188, 156, 0.3) 100%);
-    border-radius: 100px;
+    transform: translate(-50%, -50%);
+    width: 140%;
+    height: 140%;
     z-index: 1;
-    filter: blur(3px);
-    box-shadow: 0 0 35px rgba(59, 130, 246, 0.35);
+    pointer-events: none;
+    overflow: visible;
+}
+
+.about-glitter-radial-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 95%;
+    height: 95%;
+    background: radial-gradient(circle at center, 
+        rgba(59, 130, 246, 0.45) 0%, 
+        rgba(26, 188, 156, 0.28) 42%, 
+        rgba(59, 130, 246, 0.08) 68%, 
+        transparent 82%);
+    border-radius: 50%;
+    filter: blur(28px);
+    animation: glitterPulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes glitterPulse {
+    0% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.7; }
+    100% { transform: translate(-50%, -50%) scale(1.18); opacity: 1; }
+}
+
+.glitter-particle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    font-size: clamp(0.75rem, 1.2vw, 1.25rem);
+    color: #ffffff;
+    text-shadow: 0 0 12px #3b82f6, 0 0 22px #1abc9c, 0 0 32px #ffffff;
+    user-select: none;
+    animation: glitterSpread 3.5s ease-in-out infinite alternate;
+}
+
+.glitter-particle.p1  { transform: translate(-140px, -110px) scale(0.9); animation-delay: 0.1s; }
+.glitter-particle.p2  { transform: translate(120px, -130px) scale(1.1); animation-delay: 0.4s; }
+.glitter-particle.p3  { transform: translate(-160px, 40px) scale(0.8); animation-delay: 0.7s; }
+.glitter-particle.p4  { transform: translate(150px, 60px) scale(1.2); animation-delay: 0.2s; }
+.glitter-particle.p5  { transform: translate(-90px, -170px) scale(1.0); animation-delay: 0.9s; }
+.glitter-particle.p6  { transform: translate(80px, -180px) scale(0.85); animation-delay: 0.5s; }
+.glitter-particle.p7  { transform: translate(-110px, 150px) scale(1.15); animation-delay: 0.3s; }
+.glitter-particle.p8  { transform: translate(110px, 140px) scale(0.9); animation-delay: 0.8s; }
+.glitter-particle.p9  { transform: translate(-180px, -40px) scale(1.05); animation-delay: 0.6s; }
+.glitter-particle.p10 { transform: translate(170px, -30px) scale(0.95); animation-delay: 0.15s; }
+.glitter-particle.p11 { transform: translate(0px, -200px) scale(1.2); animation-delay: 0.45s; }
+.glitter-particle.p12 { transform: translate(0px, 180px) scale(1.0); animation-delay: 0.75s; }
+
+@keyframes glitterSpread {
+    0% {
+        opacity: 0.25;
+        filter: drop-shadow(0 0 4px #3b82f6);
+    }
+    50% {
+        opacity: 1;
+        filter: drop-shadow(0 0 16px #3b82f6) drop-shadow(0 0 24px #1abc9c);
+    }
+    100% {
+        opacity: 0.35;
+        filter: drop-shadow(0 0 8px #3b82f6);
+    }
 }
 
 .about-cutout-photo {
@@ -806,12 +865,13 @@ html.figma-dragging-active * {
     border-radius: 0;
     box-shadow: none;
     background: none;
-    filter: grayscale(100%) contrast(1.12) brightness(1.04);
-    transition: filter 0.4s ease;
+    filter: drop-shadow(0 10px 30px rgba(59, 130, 246, 0.25));
+    transition: transform 0.4s ease, filter 0.4s ease;
 }
 
 .about-cutout-photo:hover {
-    filter: grayscale(0%) contrast(1.05) brightness(1.02);
+    transform: scale(1.02);
+    filter: drop-shadow(0 15px 40px rgba(59, 130, 246, 0.45));
 }
 
 .about-left-socials-row {

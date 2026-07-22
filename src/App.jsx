@@ -902,7 +902,21 @@ function App() {
             {/* Left Column: Cutout Portrait + Organic Blob Backdrop + Social Links */}
             <div className="about-modern-left">
               <div className="about-photo-card">
-                <div className="about-line-behind"></div>
+                <div className="about-glitter-container">
+                  <div className="about-glitter-radial-glow"></div>
+                  <span className="glitter-particle p1">★</span>
+                  <span className="glitter-particle p2">✦</span>
+                  <span className="glitter-particle p3">✨</span>
+                  <span className="glitter-particle p4">✦</span>
+                  <span className="glitter-particle p5">★</span>
+                  <span className="glitter-particle p6">✨</span>
+                  <span className="glitter-particle p7">✦</span>
+                  <span className="glitter-particle p8">★</span>
+                  <span className="glitter-particle p9">✨</span>
+                  <span className="glitter-particle p10">✦</span>
+                  <span className="glitter-particle p11">★</span>
+                  <span className="glitter-particle p12">✨</span>
+                </div>
                 <img src={profileImg} alt="Jeevanantham Jayaraj" className="about-cutout-photo" />
               </div>
               
