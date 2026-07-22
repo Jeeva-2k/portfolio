@@ -235,36 +235,53 @@ html.figma-dragging-active * {
 }
 
 .header-nav a {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.65);
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     font-weight: 500;
-    transition: color 0.3s ease, text-shadow 0.3s ease;
+    transition: all 0.3s ease;
     position: relative;
-    padding: 4px 0;
+    padding: 5px 14px;
+    border-radius: 6px;
+    border: 1.5px solid transparent;
+    user-select: none;
 }
 
 .header-nav a:hover {
     color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .header-nav a.active {
     color: #ffffff;
-    font-weight: 600;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    font-weight: 700;
+    background: rgba(24, 160, 251, 0.16);
+    border: 1.5px solid #18a0fb;
+    border-radius: 6px;
+    box-shadow: 0 0 16px rgba(24, 160, 251, 0.35);
 }
 
+.header-nav a.active::before,
 .header-nav a.active::after {
     content: '';
     position: absolute;
-    bottom: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--color-purple);
-    box-shadow: 0 0 8px var(--color-purple);
+    width: 5px;
+    height: 5px;
+    background: #ffffff;
+    border: 1px solid #18a0fb;
+    border-radius: 1px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.header-nav a.active::before {
+    top: -3px;
+    left: -3px;
+}
+
+.header-nav a.active::after {
+    bottom: -3px;
+    right: -3px;
 }
 
 .header-left-placeholder {
@@ -346,8 +363,33 @@ html.figma-dragging-active * {
 
 .dock-item.active {
     color: #ffffff;
-    background: var(--color-purple);
-    box-shadow: 0 0 20px var(--color-purple-glow);
+    background: rgba(24, 160, 251, 0.16);
+    border: 1.5px solid #18a0fb;
+    border-radius: 8px;
+    box-shadow: 0 0 16px rgba(24, 160, 251, 0.35);
+}
+
+.dock-item.active::before,
+.dock-item.active::after {
+    content: '';
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: #ffffff;
+    border: 1px solid #18a0fb;
+    border-radius: 1px;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.dock-item.active::before {
+    top: -3px;
+    left: -3px;
+}
+
+.dock-item.active::after {
+    bottom: -3px;
+    right: -3px;
 }
 
 /* ==========================================
