@@ -11,6 +11,7 @@ import {
 } from 'react-icons/tb';
 import './App.css';
 import profileImg from './assets/profile.png';
+import heroProfileImg from './assets/hero-profile.png';
 
 // Paste your Google Apps Script Web App URL below to log every visit directly to a Google Sheet (Excel-compatible)
 const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz7SPLYZVRHRvK_KZwz9HrgCxGrx1jVzVd6DRzEuiqeJzygNsoeeN5XfqVfDUfD7tnCBQ/exec";
@@ -812,7 +813,7 @@ function App() {
                 </span>
                 <span className="inline-photo-card">
                   <span className="photo-wrapper">
-                    <img src={profileImg} alt="Jeevanantham" className="inline-profile-img" />
+                    <img src={heroProfileImg} alt="Jeevanantham" className="inline-profile-img" />
                   </span>
                   <div className="photo-figma-frame">
                     <span className="photo-figma-badge">Photo</span>
