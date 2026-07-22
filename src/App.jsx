@@ -1,4 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
+import { FaLinkedin, FaBehance, FaInstagram } from 'react-icons/fa6';
+import { FiArrowUpRight, FiMail, FiArrowUp } from 'react-icons/fi';
+import { 
+  TbBrandFigma, 
+  TbBrandAdobePhotoshop, 
+  TbBrandAdobeIllustrator, 
+  TbBrandAdobePremiere, 
+  TbBrandAdobeXd, 
+  TbBrandAdobeIndesign 
+} from 'react-icons/tb';
 import './App.css';
 import profileImg from './assets/profile.png';
 
@@ -99,6 +109,118 @@ const skillsList = [
   }
 ];
 
+const DraggableSkillCard = ({ skill }) => {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    dragStart.current = { x: e.clientX - position.x, y: e.clientY - position.y };
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    const newX = e.clientX - dragStart.current.x;
+    const newY = e.clientY - dragStart.current.y;
+    // Rubber band damping
+    setPosition({ x: newX * 0.6, y: newY * 0.6 });
+  };
+
+  const handleMouseUpOrLeave = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  const handleTouchStart = (e) => {
+    const touch = e.touches[0];
+    setIsDragging(true);
+    dragStart.current = { x: touch.clientX - position.x, y: touch.clientY - position.y };
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging) return;
+    const touch = e.touches[0];
+    const newX = touch.clientX - dragStart.current.x;
+    const newY = touch.clientY - dragStart.current.y;
+    setPosition({ x: newX * 0.6, y: newY * 0.6 });
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  return (
+    <div
+      className={`draggable-skill-card ${isDragging ? 'dragging' : ''}`}
+      style={{
+        transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
+        transition: isDragging ? 'none' : 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)'
+      }}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUpOrLeave}
+      onMouseLeave={handleMouseUpOrLeave}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div className="card-drag-indicator">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <circle cx="9" cy="9" r="1.5"></circle>
+          <circle cx="9" cy="15" r="1.5"></circle>
+          <circle cx="15" cy="9" r="1.5"></circle>
+          <circle cx="15" cy="15" r="1.5"></circle>
+        </svg>
+      </div>
+      <div className="skill-card-top">
+        <div className="skill-card-icon-badge">
+          {skill.icon}
+        </div>
+        <span className="skill-card-tag">{skill.tag}</span>
+      </div>
+      <h3 className="skill-card-title">{skill.title}</h3>
+      <p className="skill-card-desc">{skill.desc}</p>
+      <div className="skill-card-chips">
+        {skill.chips.map((chip, idx) => (
+          <span key={idx} className="skill-chip">{chip}</span>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const FooterRotatingWord = () => {
+  const words = ["WORK", "BUILD", "DESIGN", "CREATE"];
+  const [index, setIndex] = useState(0);
+  const [animationState, setAnimationState] = useState('idle');
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setAnimationState('exiting');
+      setTimeout(() => {
+        setIndex((prev) => (prev + 1) % words.length);
+        setAnimationState('entering');
+        setTimeout(() => {
+          setAnimationState('idle');
+        }, 40);
+      }, 350);
+    }, 2200);
+
+    return () => clearInterval(timer);
+  }, [words.length]);
+
+  return (
+    <span className="footer-word-slider">
+      <span className={`footer-rotating-word ${animationState}`}>
+        {words[index]}
+      </span>
+    </span>
+  );
+};
+
 function App() {
   const [activeSection, setActiveSection] = useState('hero');
   const [activeSkillIndex, setActiveSkillIndex] = useState(0);
@@ -108,6 +230,7 @@ function App() {
   const [visitorCount, setVisitorCount] = useState(null);
   const [visitorGeo, setVisitorGeo] = useState('');
   const [scrolled, setScrolled] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const skillsWrapperRef = useRef(null);
 
   // Calculate experience duration dynamically from July 2023
@@ -219,6 +342,12 @@ function App() {
         setScrolled(true);
       } else {
         setScrolled(false);
+      }
+
+      if (window.scrollY > 400) {
+        setShowBackToTop(true);
+      } else {
+        setShowBackToTop(false);
       }
 
       const sections = document.querySelectorAll('section[id]');
@@ -761,107 +890,90 @@ function App() {
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
             </span>
-            <h2 className="recent-works-title">ABOUT</h2>
+            <h2 className="recent-works-title">ABOUT ME</h2>
             <span className="recent-works-circle circle-right">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
               </svg>
             </span>
           </div>
-          <div className="about-grid">
-            {/* Left Card: Passport Image Card */}
-            <div className="about-profile-card">
-              <div className="profile-image-container">
-                <div className="profile-image-ring"></div>
-                <img src={profileImg} alt="Jeevanantham Jayaraj" className="profile-avatar" />
+
+          <div className="about-modern-container">
+            {/* Left Column: Cutout Portrait + Organic Blob Backdrop + Social Links */}
+            <div className="about-modern-left">
+              <div className="about-photo-card">
+                <div className="about-line-behind"></div>
+                <img src={profileImg} alt="Jeevanantham Jayaraj" className="about-cutout-photo" />
               </div>
               
-              <div className="profile-meta">
-                <h3>Jeevanantham Jayaraj</h3>
-                <p className="profile-role">UI/UX & Visual Designer</p>
-                <div className="profile-info-pill-container">
-                  <span className="profile-pill">Namakkal, India</span>
-                  <span className="profile-pill">{calculateExperience()} Exp</span>
-                </div>
-              </div>
-
-              <div className="profile-skills-box">
-                <h4>Primary Stack</h4>
-                <div className="skill-tags-group">
-                  <span className="skill-tag-badge figma" title="Figma">Figma</span>
-                  <span className="skill-tag-badge adobe-xd" title="Adobe XD">Adobe XD</span>
-                  <span className="skill-tag-badge illustrator" title="Illustrator">Illustrator</span>
-                  <span className="skill-tag-badge photoshop" title="Photoshop">Photoshop</span>
-                  <span className="skill-tag-badge premiere-pro" title="Premiere Pro">Premiere Pro</span>
-                  <span className="skill-tag-badge indesign" title="InDesign">InDesign</span>
-                </div>
+              <div className="about-left-socials-row">
+                <a href="https://www.instagram.com/jeeva.log/" target="_blank" rel="noopener noreferrer" className="about-social-icon-item" aria-label="Instagram">
+                  <FaInstagram />
+                </a>
+                <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" className="about-social-icon-item" aria-label="Behance">
+                  <FaBehance />
+                </a>
+                <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" className="about-social-icon-item" aria-label="LinkedIn">
+                  <FaLinkedin />
+                </a>
+                <a href="mailto:jeevanantham2002nkl@gmail.com" className="about-social-email-item">
+                  <FiMail />
+                  <span>jeevanantham2002nkl@gmail.com</span>
+                </a>
               </div>
             </div>
 
-            {/* Right Card: Content */}
-            <div className="about-content-card">
-              <div className="about-bio-card">
-                <h2 className="about-heading-main">Design with Purpose</h2>
-                <p className="about-lead-text">
-                  I am a UI/UX Designer with a <strong>Computer Science Engineering</strong> background, specializing in translating complex enterprise workflows into elegant, functional SaaS dashboards.
-                </p>
-                <p className="about-body-text">
-                  Through my engagement as a Deloitte contractor under The Cloud Company, I have designed and delivered 18+ high-impact digital products. I combine user-centric visual design with a technical engineering mindset, using design tokens and modular systems to bridge design and clean front-end execution.
-                </p>
-              </div>
+            {/* Right Column: Title, Subtitle, Tech Categorized List, Big Stats */}
+            <div className="about-modern-right">
+              <h1 className="about-title-name">Hi, I'm Jeevanantham Jayaraj</h1>
+              <p className="about-subtitle-role">
+                UI/UX &amp; Visual Designer based in Namakkal, India. Deloitte Contractor at The Cloud Company.
+              </p>
 
-              <h4 className="about-subheading">Current Engagement</h4>
-              <div className="current-work-card">
-                <div className="work-card-header">
-                  <div className="work-meta">
-                    <span className="work-badge-active">Active Engagement</span>
-                    <h5 className="work-title">UI/UX Designer (Deloitte Contractor)</h5>
-                    <span className="work-company">The Cloud Company / Deloitte</span>
-                  </div>
-                  <span className="work-duration">Jul 2023 - Present ({calculateExperience()})</span>
+              <div className="about-modern-stats">
+                <div className="modern-stat-item">
+                  <span className="modern-stat-num">+18</span>
+                  <span className="modern-stat-lbl">Projects Completed</span>
                 </div>
-                <p className="work-desc">
-                  Designing complex enterprise SaaS platforms, telemetry dashboards, and internal software utilities. Directly collaborating with engineering teams and stakeholders to build design-to-code pipelines using Design Tokens.
-                </p>
-                <div className="work-highlights">
-                  <div className="highlight-item">
-                    <span className="highlight-bullet">✦</span>
-                    <span>Delivered 18+ high-impact enterprise dashboard interfaces</span>
-                  </div>
-                  <div className="highlight-item">
-                    <span className="highlight-bullet">✦</span>
-                    <span>Standardized design-to-code handoff using cohesive design token models</span>
-                  </div>
-                  <div className="highlight-item">
-                    <span className="highlight-bullet">✦</span>
-                    <span>Simplified complex administrative telemetry data flows, reducing user task completion times</span>
-                  </div>
+                <div className="modern-stat-item">
+                  <span className="modern-stat-num">3+</span>
+                  <span className="modern-stat-lbl">Years Experience</span>
+                </div>
+                <div className="modern-stat-item">
+                  <span className="modern-stat-num">+200</span>
+                  <span className="modern-stat-lbl">Components Built</span>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Stats Grid */}
-          <div className="impact-grid-new">
-            <div className="impact-card-new">
-              <span className="impact-stat-number">18+</span>
-              <span className="impact-stat-label">Projects Delivered</span>
-              <p>Deploying SaaS platforms and dashboards successfully under tight enterprise requirements.</p>
-            </div>
-            <div className="impact-card-new">
-              <span className="impact-stat-number">200+</span>
-              <span className="impact-stat-label">Components Built</span>
-              <p>Standardizing UI components inside Figma to boost workflow scaling and developer velocity.</p>
-            </div>
-            <div className="impact-card-new">
-              <span className="impact-stat-number">40%</span>
-              <span className="impact-stat-label">Workflows Simplified</span>
-              <p>Reducing user task flow complexities, resulting in shorter product onboarding times.</p>
-            </div>
-            <div className="impact-card-new">
-              <span className="impact-stat-number">5+</span>
-              <span className="impact-stat-label">AI Tools Integrated</span>
-              <p>Leveraging generative tools and prompt engineering to accelerate design iterations.</p>
+              <div className="about-tools-bar">
+                <span className="tools-bar-label">Design Stack</span>
+                <div className="tools-icons-row">
+                  <div className="tool-icon-chip" title="Figma">
+                    <TbBrandFigma className="tool-package-icon figma" />
+                    <span>Figma</span>
+                  </div>
+                  <div className="tool-icon-chip" title="Photoshop">
+                    <TbBrandAdobePhotoshop className="tool-package-icon ps" />
+                    <span>Photoshop</span>
+                  </div>
+                  <div className="tool-icon-chip" title="Illustrator">
+                    <TbBrandAdobeIllustrator className="tool-package-icon ai" />
+                    <span>Illustrator</span>
+                  </div>
+                  <div className="tool-icon-chip" title="Premiere Pro">
+                    <TbBrandAdobePremiere className="tool-package-icon pr" />
+                    <span>Premiere Pro</span>
+                  </div>
+                  <div className="tool-icon-chip" title="Adobe XD">
+                    <TbBrandAdobeXd className="tool-package-icon xd" />
+                    <span>Adobe XD</span>
+                  </div>
+                  <div className="tool-icon-chip" title="InDesign">
+                    <TbBrandAdobeIndesign className="tool-package-icon id" />
+                    <span>InDesign</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -1089,86 +1201,10 @@ function App() {
               </span>
             </div>
 
-            <div className="simple-canvas-container">
-              {/* Figma Multiplayer Cursors */}
-              <div className="figma-cursor cursor-blue">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 3v15.2l3.8-3.7 3.3 7.8 2.8-1.2-3.3-7.8h5.1z"/></svg>
-                <span className="cursor-label">Jeeva</span>
-              </div>
-              <div className="figma-cursor cursor-purple-user">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 3v15.2l3.8-3.7 3.3 7.8 2.8-1.2-3.3-7.8h5.1z"/></svg>
-                <span className="cursor-label">Client</span>
-              </div>
-
-              {/* Selected Figma Frame Card */}
-              <div className={`figma-frame-card-simple ${skillsList[activeSkillIndex].theme}`}>
-                <span className="corner-handle tl"></span>
-                <span className="corner-handle tr"></span>
-                <span className="corner-handle bl"></span>
-                <span className="corner-handle br"></span>
-                
-                <div className="figma-frame-badge">
-                  Frame: {skillsList[activeSkillIndex].title}
-                </div>
-
-                <div className="frame-card-content">
-                  <div className="frame-card-left">
-                    <div className="frame-card-icon-badge">
-                      {skillsList[activeSkillIndex].icon}
-                    </div>
-                    <div className="frame-card-tag">{skillsList[activeSkillIndex].tag}</div>
-                    <h3 className="frame-card-title">{skillsList[activeSkillIndex].title}</h3>
-                  </div>
-                  
-                  <div className="frame-card-right">
-                    <p className="frame-card-desc">{skillsList[activeSkillIndex].desc}</p>
-                    <div className="frame-card-chips-group">
-                      {skillsList[activeSkillIndex].chips.map((chip, idx) => (
-                        <span key={idx} className="frame-chip">{chip}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Carousel controls */}
-              <div className="figma-carousel-controls">
-                <button 
-                  className="figma-nav-btn prev-btn" 
-                  onClick={() => {
-                    setActiveSkillIndex((prev) => (prev === 0 ? skillsList.length - 1 : prev - 1));
-                  }}
-                  aria-label="Previous Skill"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                    <polyline points="12 19 5 12 12 5"></polyline>
-                  </svg>
-                </button>
-                
-                <div className="figma-dots-indicator">
-                  {skillsList.map((_, index) => (
-                    <span
-                      key={index}
-                      className={`skills-carousel-dot ${activeSkillIndex === index ? 'active' : ''}`}
-                      onClick={() => { setActiveSkillIndex(index); }}
-                    />
-                  ))}
-                </div>
-
-                <button 
-                  className="figma-nav-btn next-btn" 
-                  onClick={() => {
-                    setActiveSkillIndex((prev) => (prev === skillsList.length - 1 ? 0 : prev + 1));
-                  }}
-                  aria-label="Next Skill"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                    <polyline points="12 5 19 12 12 19"></polyline>
-                  </svg>
-                </button>
-              </div>
+            <div className="skills-grid-container">
+              {skillsList.map((skill, index) => (
+                <DraggableSkillCard key={index} skill={skill} />
+              ))}
             </div>
           </section>
         </div>
@@ -1229,7 +1265,29 @@ function App() {
             </span>
           </div>
           <div className="contact-grid-brotype">
-            {/* Left side: Message form */}
+            {/* Left side: Info */}
+            <div className="contact-info-column">
+              <h2 className="contact-info-title">Get in Touch</h2>
+              <div className="info-details-box">
+                <div className="detail-item">
+                  <span className="detail-label">Email</span>
+                  <a href="mailto:jeevanantham2002nkl@gmail.com" className="detail-value">jeevanantham2002nkl@gmail.com</a>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Social Profiles</span>
+                  <div className="contact-social-icons-row">
+                    <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" className="contact-social-icon-btn" aria-label="LinkedIn">
+                      <FaLinkedin />
+                    </a>
+                    <a href="https://www.instagram.com/jeeva.log/" target="_blank" rel="noopener noreferrer" className="contact-social-icon-btn" aria-label="Instagram">
+                      <FaInstagram />
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right side: Message form */}
             <div className="contact-form-column">
               <h2 className="contact-form-title">Send a Message</h2>
               <form className="contact-form-widget" onSubmit={handleContactSubmit}>
@@ -1249,85 +1307,73 @@ function App() {
                 </button>
               </form>
             </div>
-
-            {/* Right side: Info and Clock */}
-            <div className="contact-info-column">
-              <div className="info-clock-box">
-                <span className="clock-timezone">Namakkal, India (IST)</span>
-                <span className="clock-time">{currentTime || "12:00:00 PM"}</span>
-              </div>
-              
-              <div className="info-details-box">
-                <div className="detail-item">
-                  <span className="detail-label">Email</span>
-                  <a href="mailto:jeevanantham2002nkl@gmail.com" className="detail-value">jeevanantham2002nkl@gmail.com</a>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Phone</span>
-                  <a href="tel:+917339042578" className="detail-value">+91 73390 42578</a>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Office Hours</span>
-                  <span className="detail-value">10:00 AM - 07:00 PM IST</span>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
 
         {/* 8️⃣ Footer */}
         <footer className="footer-section-brotype">
-          <div className="footer-connect-title">CONNECT</div>
-          
-          <div className="footer-grid-brotype">
-            <div className="footer-links-group">
-              <div className="footer-link-item">
-                <svg className="link-triangle" viewBox="0 0 10 10" width="8" height="8"><polygon points="0 0, 10 5, 0 10" fill="currentColor"/></svg>
-                <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer">Linkedin</a>
-              </div>
-              <div className="footer-link-item">
-                <svg className="link-triangle" viewBox="0 0 10 10" width="8" height="8"><polygon points="0 0, 10 5, 0 10" fill="currentColor"/></svg>
-                <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer">Behance</a>
-              </div>
-              <div className="footer-link-item">
-                <svg className="link-triangle" viewBox="0 0 10 10" width="8" height="8"><polygon points="0 0, 10 5, 0 10" fill="currentColor"/></svg>
-                <a href="mailto:jeevanantham2002nkl@gmail.com">Email</a>
-              </div>
-            </div>
-
-            <div className="footer-details-group">
-              <div className="footer-logo-brotype">
-                <span className="logo-j">J</span>EEVANANTHAM
-              </div>
-              <p className="footer-tagline-brotype">Designing clarity from complexity — enterprise SaaS systems & scalable design systems.</p>
-              
-              <div className="footer-badges-row">
-                <div className="footer-badge-item">
-                  <span className="badge-dot pulsing"></span>
-                  <span>Available for work</span>
+          <div className="footer-inner-container">
+            <div className="footer-main-grid">
+              <div className="footer-left-col">
+                <h2 className="footer-big-title">
+                  LET'S<br />
+                  <FooterRotatingWord /><br />
+                  TOGETHER
+                </h2>
+                
+                <div className="footer-email-row">
+                  <FiArrowUpRight className="footer-arrow-icon" />
+                  <a href="mailto:jeevanantham2002nkl@gmail.com" className="footer-email-link">jeevanantham2002nkl@gmail.com</a>
                 </div>
-                {visitorCount !== null && (
-                  <div className="footer-badge-item">
-                    <span>Visitor #{visitorCount.toLocaleString()} {visitorGeo && `(${visitorGeo})`}</span>
+              </div>
+              
+              <div className="footer-right-col">
+                <div className="footer-abstract-box">
+                  <div className="footer-asterisk-wrapper">
+                    <svg className="footer-asterisk-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M50 5 V95 M5 50 H95 M18.18 18.18 L81.82 81.82 M18.18 81.82 L81.82 18.18" stroke="currentColor" strokeWidth="9" strokeLinecap="round"/>
+                    </svg>
                   </div>
-                )}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="footer-bottom-brotype">
-            <p className="copyright-text">&copy; {new Date().getFullYear()} Jeevanantham Jayaraj. All rights reserved.</p>
-            <button className="back-to-top-btn" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-              <span>Back to Top</span>
-              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="19" x2="12" y2="5"></line>
-                <polyline points="5 12 12 5 19 12"></polyline>
-              </svg>
-            </button>
+            <div className="footer-bottom-bar">
+              <p className="footer-copyright">
+                &copy; {new Date().getFullYear()} Jeevanantham Jayaraj
+              </p>
+              <div className="footer-social-links">
+                <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" className="social-link-item">
+                  <FaLinkedin className="social-icon" />
+                  <span>Linkedin</span>
+                </a>
+                <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" className="social-link-item">
+                  <FaBehance className="social-icon" />
+                  <span>Behance</span>
+                </a>
+                <a href="https://www.instagram.com/jeeva.log/" target="_blank" rel="noopener noreferrer" className="social-link-item">
+                  <FaInstagram className="social-icon" />
+                  <span>Instagram</span>
+                </a>
+                <a href="mailto:jeevanantham2002nkl@gmail.com" className="social-link-item">
+                  <FiMail className="social-icon" />
+                  <span>Email</span>
+                </a>
+              </div>
+            </div>
           </div>
         </footer>
 
       </div>
+
+      {/* Floating Back to Top Button */}
+      <button 
+        className={`floating-back-to-top-btn ${showBackToTop ? 'visible' : ''}`}
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        aria-label="Back to Top"
+      >
+        <FiArrowUp />
+      </button>
 
       {/* Figma Selection Overlay */}
       <div className="figma-selection-frame" id="figma-frame">
