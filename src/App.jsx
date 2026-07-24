@@ -269,14 +269,21 @@ function ParallaxCardsCarousel() {
       const normalizedDist = Math.min(Math.max(distanceFromCenter / (scrollerRect.width * 0.38), -1.5), 1.5);
       const absDist = Math.abs(normalizedDist);
 
-      const scale = 1.10 - Math.min(absDist, 1) * 0.22;
-      const imgScale = 1.06 + (1 - Math.min(absDist, 1)) * 0.28;
-      const parallaxX = -normalizedDist * 48;
-      const opacity = 1 - Math.min(absDist, 1) * 0.30;
+      const scale = 1.06 - Math.min(absDist, 1) * 0.16;
+      const imgScale = 1.06 + (1 - Math.min(absDist, 1)) * 0.32;
+      
+      // Dynamic directional zoom transform origin:
+      // Left-to-right scroll: image zooms towards right side (88%)
+      // Right-to-left scroll: image zooms towards left side (12%)
+      const originX = Math.round(50 + (normalizedDist * 38));
+      const transformOrigin = `${originX}% 50%`;
+      const parallaxX = -normalizedDist * 52;
+      const opacity = 1 - Math.min(absDist, 1) * 0.28;
 
       newStates.push({
         scale: scale.toFixed(3),
         imgScale: imgScale.toFixed(3),
+        transformOrigin,
         opacity: opacity.toFixed(3),
         parallaxX: parallaxX.toFixed(1),
         isCenter: absDist < 0.35,
@@ -390,7 +397,7 @@ function ParallaxCardsCarousel() {
         onMouseMove={handleMouseMove}
       >
         {carouselData.map((item, index) => {
-          const state = cardStates[index] || { scale: 0.90, imgScale: 1.06, opacity: 0.7, parallaxX: 0, isCenter: false };
+          const state = cardStates[index] || { scale: 0.90, imgScale: 1.06, transformOrigin: '50% 50%', opacity: 0.7, parallaxX: 0, isCenter: false };
           return (
             <div
               key={item.uniqueKey}
@@ -407,6 +414,7 @@ function ParallaxCardsCarousel() {
                   alt={item.title}
                   className="parallax-card-img"
                   style={{
+                    transformOrigin: state.transformOrigin || '50% 50%',
                     transform: `translateX(${state.parallaxX}px) scale(${state.imgScale})`
                   }}
                 />
