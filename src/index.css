@@ -1660,10 +1660,10 @@ html.figma-dragging-active * {
    11. BEYOND DESIGN (Parallax Card Carousel)
    ========================================== */
 .offscreen-section {
-    max-width: 1040px;
+    max-width: 960px;
     width: 94%;
     margin: 6rem auto;
-    overflow: visible;
+    overflow: hidden;
 }
 
 .parallax-carousel-container {
@@ -1672,7 +1672,7 @@ html.figma-dragging-active * {
     align-items: center;
     justify-content: center;
     width: 100%;
-    max-width: 1040px;
+    max-width: 960px;
     margin: 1.5rem auto 0 auto;
     overflow: hidden;
     border-radius: 28px;
@@ -1682,8 +1682,9 @@ html.figma-dragging-active * {
     display: flex;
     gap: 1.5rem;
     overflow-x: auto;
+    scroll-snap-type: x mandatory;
     scrollbar-width: none;
-    padding: 2.2rem calc((100% - 310px) / 2);
+    padding: 2.2rem calc((100% - 300px) / 2);
     width: 100%;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
@@ -1699,9 +1700,10 @@ html.figma-dragging-active * {
 }
 
 .parallax-carousel-card {
-    flex: 0 0 310px;
-    width: 310px;
+    flex: 0 0 300px;
+    width: 300px;
     height: 330px;
+    scroll-snap-align: center;
     border-radius: 24px;
     background: rgba(14, 12, 22, 0.6);
     border: 1.5px solid var(--border-glow);

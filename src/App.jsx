@@ -281,9 +281,9 @@ function ParallaxCardsCarousel() {
       const transformOrigin = `${originX}% 50%`;
       const parallaxX = -normalizedDist * 52;
 
-      // 3 cards fully visible window: Center card + 1 Left card + 1 Right card (absDist <= 1.45)
-      // Never cuts off the 3rd card on the right or left edge!
-      const opacity = absDist > 1.45 ? 0 : Math.max(0, 1 - Math.min(absDist, 1) * 0.28);
+      // 3 cards fully visible window: Center card + 1 Left card + 1 Right card (absDist <= 1.25)
+      // Exactly 3 un-cut cards visible with ZERO 4th card peeking!
+      const opacity = absDist > 1.25 ? 0 : Math.max(0, 1 - Math.min(absDist, 1) * 0.25);
 
       newStates.push({
         scale: scale.toFixed(3),
@@ -314,7 +314,7 @@ function ParallaxCardsCarousel() {
     autoPlayTimer.current = setInterval(() => {
       if (!isMouseDown.current && !isHovered.current && scrollerRef.current) {
         scrollerRef.current.style.scrollBehavior = 'smooth';
-        scrollerRef.current.scrollBy({ left: 334 });
+        scrollerRef.current.scrollBy({ left: 324 });
       }
     }, 2800);
 
