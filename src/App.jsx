@@ -201,11 +201,13 @@ function ParallaxCardsCarousel() {
   const scrollerRef = useRef(null);
   const [cardStates, setCardStates] = useState([]);
   const isMouseDown = useRef(false);
+  const isHovered = useRef(false);
   const startX = useRef(0);
   const scrollLeftStart = useRef(0);
   const isDraggingMove = useRef(false);
+  const autoPlayTimer = useRef(null);
 
-  const carouselData = [
+  const rawCarouselData = [
     {
       id: 'travel',
       title: 'Exploration',
@@ -228,9 +230,25 @@ function ParallaxCardsCarousel() {
     },
   ];
 
+  // Repeat 3 sets for 360-degree infinite looping
+  const carouselData = [
+    ...rawCarouselData.map((d) => ({ ...d, uniqueKey: `set1-${d.id}` })),
+    ...rawCarouselData.map((d) => ({ ...d, uniqueKey: `set2-${d.id}` })),
+    ...rawCarouselData.map((d) => ({ ...d, uniqueKey: `set3-${d.id}` })),
+  ];
+
   const updateParallax = () => {
     if (!scrollerRef.current) return;
     const scroller = scrollerRef.current;
+
+    // Infinite loop jump check
+    const singleSetWidth = scroller.scrollWidth / 3;
+    if (scroller.scrollLeft < singleSetWidth * 0.35) {
+      scroller.scrollLeft += singleSetWidth;
+    } else if (scroller.scrollLeft > singleSetWidth * 2.25) {
+      scroller.scrollLeft -= singleSetWidth;
+    }
+
     const scrollerRect = scroller.getBoundingClientRect();
     const scrollerCenter = scrollerRect.left + scrollerRect.width / 2;
 
@@ -242,20 +260,12 @@ function ParallaxCardsCarousel() {
       const cardCenter = cardRect.left + cardRect.width / 2;
       const distanceFromCenter = cardCenter - scrollerCenter;
       
-      // Normalized distance (-1 to +1)
       const normalizedDist = Math.min(Math.max(distanceFromCenter / (scrollerRect.width * 0.38), -1.5), 1.5);
       const absDist = Math.abs(normalizedDist);
 
-      // Outer card scale (Center = 1.10x, Sides = 0.88x)
       const scale = 1.10 - Math.min(absDist, 1) * 0.22;
-
-      // Inner image zoom effect (Center card zooms in to 1.35x, Sides stay 1.06x)
       const imgScale = 1.06 + (1 - Math.min(absDist, 1)) * 0.28;
-
-      // Inner image parallax shift (-48px to +48px)
       const parallaxX = -normalizedDist * 48;
-
-      // Opacity fade for non-centered cards
       const opacity = 1 - Math.min(absDist, 1) * 0.30;
 
       newStates.push({
@@ -271,18 +281,29 @@ function ParallaxCardsCarousel() {
   };
 
   useEffect(() => {
-    updateParallax();
     const scroller = scrollerRef.current;
     if (scroller) {
-      // Center initial card
-      const firstCard = scroller.children[0];
-      if (firstCard) {
-        const offset = firstCard.offsetLeft - (scroller.clientWidth / 2) + (firstCard.clientWidth / 2);
-        scroller.scrollLeft = Math.max(0, offset);
+      // Start in the middle set (set2) for seamless infinite scroll in both directions
+      const set2FirstCard = scroller.children[4];
+      if (set2FirstCard) {
+        const offset = set2FirstCard.offsetLeft - (scroller.clientWidth / 2) + (set2FirstCard.clientWidth / 2);
+        scroller.scrollLeft = offset;
       }
+      updateParallax();
     }
+
+    // Auto-scroll loop every 3 seconds
+    autoPlayTimer.current = setInterval(() => {
+      if (!isMouseDown.current && !isHovered.current && scrollerRef.current) {
+        scrollerRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+      }
+    }, 3000);
+
     window.addEventListener('resize', updateParallax);
-    return () => window.removeEventListener('resize', updateParallax);
+    return () => {
+      if (autoPlayTimer.current) clearInterval(autoPlayTimer.current);
+      window.removeEventListener('resize', updateParallax);
+    };
   }, []);
 
   const handleScroll = () => {
@@ -306,7 +327,7 @@ function ParallaxCardsCarousel() {
     }
   };
 
-  // Desktop Click & Drag to Scroll
+  // Desktop Mouse Click & Drag
   const handleMouseDown = (e) => {
     if (!scrollerRef.current) return;
     isMouseDown.current = true;
@@ -318,9 +339,14 @@ function ParallaxCardsCarousel() {
 
   const handleMouseLeaveOrUp = () => {
     isMouseDown.current = false;
+    isHovered.current = false;
     if (scrollerRef.current) {
       scrollerRef.current.style.scrollBehavior = 'smooth';
     }
+  };
+
+  const handleMouseEnter = () => {
+    isHovered.current = true;
   };
 
   const handleMouseMove = (e) => {
@@ -335,10 +361,14 @@ function ParallaxCardsCarousel() {
   };
 
   return (
-    <div className="parallax-carousel-container">
+    <div 
+      className="parallax-carousel-container"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeaveOrUp}
+    >
       <button 
         className="carousel-arrow-btn prev-btn" 
-        onClick={() => scrollBy(-360)}
+        onClick={() => scrollBy(-340)}
         aria-label="Previous Slide"
       >
         <FiChevronLeft />
@@ -349,7 +379,6 @@ function ParallaxCardsCarousel() {
         ref={scrollerRef} 
         onScroll={handleScroll}
         onMouseDown={handleMouseDown}
-        onMouseLeave={handleMouseLeaveOrUp}
         onMouseUp={handleMouseLeaveOrUp}
         onMouseMove={handleMouseMove}
       >
@@ -357,7 +386,7 @@ function ParallaxCardsCarousel() {
           const state = cardStates[index] || { scale: 0.90, imgScale: 1.06, opacity: 0.7, parallaxX: 0, isCenter: false };
           return (
             <div
-              key={item.id}
+              key={item.uniqueKey}
               className={`parallax-carousel-card ${state.isCenter ? 'active-center' : ''}`}
               style={{
                 transform: `scale(${state.scale})`,
@@ -387,7 +416,7 @@ function ParallaxCardsCarousel() {
 
       <button 
         className="carousel-arrow-btn next-btn" 
-        onClick={() => scrollBy(360)}
+        onClick={() => scrollBy(340)}
         aria-label="Next Slide"
       >
         <FiChevronRight />
