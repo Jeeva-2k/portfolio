@@ -1713,11 +1713,11 @@ html.figma-dragging-active * {
 
 .parallax-carousel-track {
     display: flex;
-    gap: 2.4rem;
+    gap: 2.2rem;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
-    padding: 3.5rem max(2rem, calc(50vw - 190px));
+    padding: 2.2rem max(1.5rem, calc(50vw - 170px));
     width: 100%;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
@@ -1733,10 +1733,10 @@ html.figma-dragging-active * {
 }
 
 .parallax-carousel-card {
-    flex: 0 0 clamp(290px, 32vw, 360px);
-    height: 460px;
+    flex: 0 0 clamp(270px, 30vw, 340px);
+    height: 330px;
     scroll-snap-align: center;
-    border-radius: 28px;
+    border-radius: 24px;
     background: rgba(14, 12, 22, 0.6);
     border: 1.5px solid var(--border-glow);
     position: relative;
@@ -1750,7 +1750,7 @@ html.figma-dragging-active * {
 
 .parallax-carousel-card.active-center {
     border-color: rgba(59, 130, 246, 0.65);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(59, 130, 246, 0.35);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 35px rgba(59, 130, 246, 0.35);
 }
 
 .parallax-card-media-wrapper {
@@ -1788,7 +1788,7 @@ html.figma-dragging-active * {
     bottom: 0;
     left: 0;
     width: 100%;
-    padding: 2.4rem 1.8rem;
+    padding: 1.6rem 1.4rem;
     z-index: 5;
     display: flex;
     align-items: flex-start;
@@ -1797,7 +1797,7 @@ html.figma-dragging-active * {
 
 .parallax-card-title {
     font-family: var(--font-display);
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     font-weight: 800;
     color: #ffffff;
     line-height: 1.2;
@@ -1810,8 +1810,8 @@ html.figma-dragging-active * {
         display: none;
     }
     .parallax-carousel-card {
-        flex: 0 0 85vw;
-        height: 400px;
+        flex: 0 0 82vw;
+        height: 280px;
     }
 }
 
