@@ -278,7 +278,9 @@ function ParallaxCardsCarousel() {
       const originX = Math.round(50 + (normalizedDist * 38));
       const transformOrigin = `${originX}% 50%`;
       const parallaxX = -normalizedDist * 52;
-      const opacity = 1 - Math.min(absDist, 1) * 0.28;
+      // Only 3 cards visible window: Center card + 1 Left card + 1 Right card (absDist <= 1.2)
+      // Hide any 4th or 5th card until scrolled into view
+      const opacity = absDist > 1.22 ? 0 : Math.max(0, 1 - Math.min(absDist, 1) * 0.28);
 
       newStates.push({
         scale: scale.toFixed(3),
@@ -322,12 +324,6 @@ function ParallaxCardsCarousel() {
 
   const handleScroll = () => {
     updateParallax();
-  };
-
-  const scrollBy = (offset) => {
-    if (scrollerRef.current) {
-      scrollerRef.current.scrollBy({ left: offset, behavior: 'smooth' });
-    }
   };
 
   const scrollToCard = (index) => {
@@ -380,14 +376,6 @@ function ParallaxCardsCarousel() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeaveOrUp}
     >
-      <button 
-        className="carousel-arrow-btn prev-btn" 
-        onClick={() => scrollBy(-340)}
-        aria-label="Previous Slide"
-      >
-        <FiChevronLeft />
-      </button>
-
       <div 
         className="parallax-carousel-track" 
         ref={scrollerRef} 
@@ -397,7 +385,7 @@ function ParallaxCardsCarousel() {
         onMouseMove={handleMouseMove}
       >
         {carouselData.map((item, index) => {
-          const state = cardStates[index] || { scale: 0.90, imgScale: 1.06, transformOrigin: '50% 50%', opacity: 0.7, parallaxX: 0, isCenter: false };
+          const state = cardStates[index] || { scale: 0.90, imgScale: 1.06, transformOrigin: '50% 50%', opacity: 0, parallaxX: 0, isCenter: false };
           return (
             <div
               key={item.uniqueKey}
@@ -405,6 +393,7 @@ function ParallaxCardsCarousel() {
               style={{
                 transform: `scale(${state.scale})`,
                 opacity: state.opacity,
+                pointerEvents: state.opacity > 0.1 ? 'auto' : 'none'
               }}
               onClick={() => scrollToCard(index)}
             >
@@ -428,14 +417,6 @@ function ParallaxCardsCarousel() {
           );
         })}
       </div>
-
-      <button 
-        className="carousel-arrow-btn next-btn" 
-        onClick={() => scrollBy(340)}
-        aria-label="Next Slide"
-      >
-        <FiChevronRight />
-      </button>
     </div>
   );
 }

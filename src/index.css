@@ -1660,63 +1660,30 @@ html.figma-dragging-active * {
    11. BEYOND DESIGN (Parallax Card Carousel)
    ========================================== */
 .offscreen-section {
-    max-width: 1240px;
+    max-width: 1080px;
     width: 92%;
     margin: 8rem auto;
+    overflow: hidden;
 }
 
 .parallax-carousel-container {
     position: relative;
     display: flex;
     align-items: center;
-    width: 100%;
-    margin-top: 2rem;
-}
-
-.carousel-arrow-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: rgba(18, 16, 26, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: #ffffff;
-    font-size: 1.4rem;
-    display: flex;
-    align-items: center;
     justify-content: center;
-    cursor: pointer;
-    z-index: 10;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-}
-
-.carousel-arrow-btn.prev-btn {
-    left: -20px;
-}
-
-.carousel-arrow-btn.next-btn {
-    right: -20px;
-}
-
-.carousel-arrow-btn:hover {
-    color: var(--color-blue);
-    border-color: rgba(59, 130, 246, 0.5);
-    background: rgba(59, 130, 246, 0.15);
-    transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    width: 100%;
+    max-width: 1080px;
+    margin: 2rem auto 0 auto;
+    overflow: hidden;
+    border-radius: 28px;
 }
 
 .parallax-carousel-track {
     display: flex;
-    gap: 2.2rem;
+    gap: 1.8rem;
     overflow-x: auto;
     scrollbar-width: none;
-    padding: 2.2rem max(1.5rem, calc(50vw - 170px));
+    padding: 2.2rem max(1rem, calc(50% - 160px));
     width: 100%;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
