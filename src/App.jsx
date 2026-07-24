@@ -230,27 +230,29 @@ function ParallaxCardsCarousel() {
     },
   ];
 
-  // Repeat 3 sets for 360-degree infinite looping
+  // Repeat 5 sets for flawless 360-degree continuous infinite looping
   const carouselData = [
     ...rawCarouselData.map((d) => ({ ...d, uniqueKey: `set1-${d.id}` })),
     ...rawCarouselData.map((d) => ({ ...d, uniqueKey: `set2-${d.id}` })),
     ...rawCarouselData.map((d) => ({ ...d, uniqueKey: `set3-${d.id}` })),
+    ...rawCarouselData.map((d) => ({ ...d, uniqueKey: `set4-${d.id}` })),
+    ...rawCarouselData.map((d) => ({ ...d, uniqueKey: `set5-${d.id}` })),
   ];
 
   const updateParallax = () => {
     if (!scrollerRef.current) return;
     const scroller = scrollerRef.current;
 
-    // 100% Seamless Infinite Loop Reset using exact child DOM card offsets
-    if (scroller.children.length >= 8) {
+    // 100% Flawless Seamless Infinite Loop Reset
+    if (scroller.children.length >= 12) {
       const oneSetWidth = scroller.children[4].offsetLeft - scroller.children[0].offsetLeft;
       if (oneSetWidth > 0) {
-        if (scroller.scrollLeft >= oneSetWidth * 2) {
+        if (scroller.scrollLeft >= oneSetWidth * 3.2) {
           scroller.style.scrollBehavior = 'auto';
-          scroller.scrollLeft -= oneSetWidth;
-        } else if (scroller.scrollLeft <= oneSetWidth * 0.25) {
+          scroller.scrollLeft -= oneSetWidth * 2;
+        } else if (scroller.scrollLeft <= oneSetWidth * 0.8) {
           scroller.style.scrollBehavior = 'auto';
-          scroller.scrollLeft += oneSetWidth;
+          scroller.scrollLeft += oneSetWidth * 2;
         }
       }
     }
@@ -266,7 +268,7 @@ function ParallaxCardsCarousel() {
       const cardCenter = cardRect.left + cardRect.width / 2;
       const distanceFromCenter = cardCenter - scrollerCenter;
       
-      const normalizedDist = Math.min(Math.max(distanceFromCenter / (scrollerRect.width * 0.38), -1.5), 1.5);
+      const normalizedDist = Math.min(Math.max(distanceFromCenter / (scrollerRect.width * 0.36), -1.5), 1.5);
       const absDist = Math.abs(normalizedDist);
 
       const scale = 1.06 - Math.min(absDist, 1) * 0.16;
@@ -278,9 +280,10 @@ function ParallaxCardsCarousel() {
       const originX = Math.round(50 + (normalizedDist * 38));
       const transformOrigin = `${originX}% 50%`;
       const parallaxX = -normalizedDist * 52;
-      // Only 3 cards visible window: Center card + 1 Left card + 1 Right card (absDist <= 1.2)
-      // Hide any 4th or 5th card until scrolled into view
-      const opacity = absDist > 1.22 ? 0 : Math.max(0, 1 - Math.min(absDist, 1) * 0.28);
+
+      // 3 cards fully visible window: Center card + 1 Left card + 1 Right card (absDist <= 1.45)
+      // Never cuts off the 3rd card on the right or left edge!
+      const opacity = absDist > 1.45 ? 0 : Math.max(0, 1 - Math.min(absDist, 1) * 0.28);
 
       newStates.push({
         scale: scale.toFixed(3),
@@ -298,10 +301,10 @@ function ParallaxCardsCarousel() {
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (scroller) {
-      // Start in middle set (set2) for infinite scrolling in both directions
-      const set2FirstCard = scroller.children[4];
-      if (set2FirstCard) {
-        const offset = set2FirstCard.offsetLeft - (scroller.clientWidth / 2) + (set2FirstCard.clientWidth / 2);
+      // Start in middle set (set3) for infinite scrolling in both directions
+      const set3FirstCard = scroller.children[8];
+      if (set3FirstCard) {
+        const offset = set3FirstCard.offsetLeft - (scroller.clientWidth / 2) + (set3FirstCard.clientWidth / 2);
         scroller.scrollLeft = offset;
       }
       updateParallax();
@@ -311,7 +314,7 @@ function ParallaxCardsCarousel() {
     autoPlayTimer.current = setInterval(() => {
       if (!isMouseDown.current && !isHovered.current && scrollerRef.current) {
         scrollerRef.current.style.scrollBehavior = 'smooth';
-        scrollerRef.current.scrollBy({ left: 310 });
+        scrollerRef.current.scrollBy({ left: 334 });
       }
     }, 2800);
 
