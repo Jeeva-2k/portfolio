@@ -1209,7 +1209,7 @@ function App() {
           </section>
         </div>
 
-        {/* 6️⃣ Photos / Off-Screen Stories Section */}
+        {/* 6️⃣ Beyond Design / Personal Explorations Section */}
         <section className="offscreen-section" id="stories">
           <div className="recent-works-header-container">
             <span className="recent-works-circle circle-left">
@@ -1218,7 +1218,7 @@ function App() {
                 <circle cx="12" cy="13" r="4"></circle>
               </svg>
             </span>
-            <h2 className="recent-works-title">STORIES</h2>
+            <h2 className="recent-works-title">BEYOND DESIGN</h2>
             <span className="recent-works-circle circle-right">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
@@ -1228,19 +1228,19 @@ function App() {
           
           <div className="offscreen-grid">
             <div className="offscreen-card">
+              <span className="story-emoji">✈️</span>
+              <h4>Travel &amp; Culture</h4>
+              <p>Exploring new places, experiencing different cultures, and drawing fresh visual inspiration from global architecture and streetscapes.</p>
+            </div>
+            <div className="offscreen-card">
+              <span className="story-emoji">📷</span>
+              <h4>Lens &amp; Frames</h4>
+              <p>Capturing candid street moments, landscape geometry, and light plays through photography with a designer's eye for framing.</p>
+            </div>
+            <div className="offscreen-card">
               <span className="story-emoji">☕</span>
-              <h4>Fueled by Caffeine</h4>
-              <p>Designing interfaces usually requires a steady stream of filter coffee and clean soundtracks.</p>
-            </div>
-            <div className="offscreen-card">
-              <span className="story-emoji">🧩</span>
-              <h4>System Thinker</h4>
-              <p>I enjoy dissecting grid systems, design schemas, and automating developer workflows.</p>
-            </div>
-            <div className="offscreen-card">
-              <span className="story-emoji">🎨</span>
-              <h4>Vector Art</h4>
-              <p>When not wireframing SaaS platforms, I craft clean vector illustrations and brand marks.</p>
+              <h4>Coffee &amp; Deep Focus</h4>
+              <p>Fueled by filter coffee, ambient music playlists, and continuous curiosity for new creative tools and design systems.</p>
             </div>
           </div>
         </section>
