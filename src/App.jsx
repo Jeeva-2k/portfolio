@@ -204,30 +204,22 @@ function ParallaxCardsCarousel() {
   const carouselData = [
     {
       id: 'travel',
-      tag: '01 / EXPLORATION',
-      title: 'Spatial Geometry & Cities',
-      desc: 'Discovering global architecture, urban symmetry, and structural balance across diverse landscapes.',
+      title: 'Exploration',
       image: beyondTravelImg,
     },
     {
       id: 'street',
-      tag: '02 / PHOTOGRAPHY',
-      title: 'Candid Street & Shadows',
-      desc: 'Capturing contrast, neon reflections, and natural light plays with a keen eye for framing and depth.',
+      title: 'Photography',
       image: beyondStreetImg,
     },
     {
       id: 'workspace',
-      tag: '03 / DEEP WORK',
-      title: 'Craft & Coffee Sessions',
-      desc: 'Fueled by filter coffee, ambient music, and quiet focus while crafting design schemas and design tokens.',
+      title: 'Deep Work',
       image: beyondWorkspaceImg,
     },
     {
       id: 'art',
-      tag: '04 / CREATIVE LAB',
-      title: '3D & Visual Aesthetics',
-      desc: 'Exploring glassmorphic forms, vibrant gradients, and micro-interactions outside of day-to-day product UX.',
+      title: 'Creative Lab',
       image: beyondArtImg,
     },
   ];
@@ -325,9 +317,7 @@ function ParallaxCardsCarousel() {
               </div>
 
               <div className="parallax-card-content">
-                <span className="parallax-card-tag">{item.tag}</span>
                 <h3 className="parallax-card-title">{item.title}</h3>
-                <p className="parallax-card-desc">{item.desc}</p>
               </div>
             </div>
           );
