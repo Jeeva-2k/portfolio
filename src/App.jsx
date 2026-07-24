@@ -1,17 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
 import { FaLinkedin, FaBehance, FaInstagram } from 'react-icons/fa6';
-import { FiArrowUpRight, FiMail, FiArrowUp } from 'react-icons/fi';
-import { 
-  TbBrandFigma, 
-  TbBrandAdobePhotoshop, 
-  TbBrandAdobeIllustrator, 
-  TbBrandAdobePremiere, 
-  TbBrandAdobeXd, 
-  TbBrandAdobeIndesign 
+import { FiArrowUpRight, FiMail, FiArrowUp, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import {
+  TbBrandFigma,
+  TbBrandAdobePhotoshop,
+  TbBrandAdobeIllustrator,
+  TbBrandAdobePremiere,
+  TbBrandAdobeXd,
+  TbBrandAdobeIndesign
 } from 'react-icons/tb';
 import './App.css';
 import profileImg from './assets/profile.png';
 import heroProfileImg from './assets/hero-profile.png';
+import beyondTravelImg from './assets/beyond-travel.png';
+import beyondStreetImg from './assets/beyond-street.png';
+import beyondWorkspaceImg from './assets/beyond-workspace.png';
+import beyondArtImg from './assets/beyond-art.png';
 
 // Paste your Google Apps Script Web App URL below to log every visit directly to a Google Sheet (Excel-compatible)
 const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz7SPLYZVRHRvK_KZwz9HrgCxGrx1jVzVd6DRzEuiqeJzygNsoeeN5XfqVfDUfD7tnCBQ/exec";
@@ -193,6 +197,154 @@ const DraggableSkillCard = ({ skill }) => {
   );
 };
 
+function ParallaxCardsCarousel() {
+  const scrollerRef = useRef(null);
+  const [cardStates, setCardStates] = useState([]);
+
+  const carouselData = [
+    {
+      id: 'travel',
+      tag: '01 / EXPLORATION',
+      title: 'Spatial Geometry & Cities',
+      desc: 'Discovering global architecture, urban symmetry, and structural balance across diverse landscapes.',
+      image: beyondTravelImg,
+    },
+    {
+      id: 'street',
+      tag: '02 / PHOTOGRAPHY',
+      title: 'Candid Street & Shadows',
+      desc: 'Capturing contrast, neon reflections, and natural light plays with a keen eye for framing and depth.',
+      image: beyondStreetImg,
+    },
+    {
+      id: 'workspace',
+      tag: '03 / DEEP WORK',
+      title: 'Craft & Coffee Sessions',
+      desc: 'Fueled by filter coffee, ambient music, and quiet focus while crafting design schemas and design tokens.',
+      image: beyondWorkspaceImg,
+    },
+    {
+      id: 'art',
+      tag: '04 / CREATIVE LAB',
+      title: '3D & Visual Aesthetics',
+      desc: 'Exploring glassmorphic forms, vibrant gradients, and micro-interactions outside of day-to-day product UX.',
+      image: beyondArtImg,
+    },
+  ];
+
+  const updateParallax = () => {
+    if (!scrollerRef.current) return;
+    const scroller = scrollerRef.current;
+    const scrollerRect = scroller.getBoundingClientRect();
+    const scrollerCenter = scrollerRect.left + scrollerRect.width / 2;
+
+    const cards = scroller.querySelectorAll('.parallax-carousel-card');
+    const newStates = [];
+
+    cards.forEach((card) => {
+      const cardRect = card.getBoundingClientRect();
+      const cardCenter = cardRect.left + cardRect.width / 2;
+      const distanceFromCenter = cardCenter - scrollerCenter;
+      const normalizedDist = Math.min(Math.max(distanceFromCenter / (scrollerRect.width * 0.45), -1.5), 1.5);
+      
+      const absDist = Math.abs(normalizedDist);
+      const scale = 1.08 - Math.min(absDist, 1) * 0.18;
+      const opacity = 1 - Math.min(absDist, 1) * 0.35;
+      const parallaxX = -normalizedDist * 42;
+
+      newStates.push({
+        scale: scale.toFixed(3),
+        opacity: opacity.toFixed(3),
+        parallaxX: parallaxX.toFixed(1),
+        isCenter: absDist < 0.35,
+      });
+    });
+
+    setCardStates(newStates);
+  };
+
+  useEffect(() => {
+    updateParallax();
+    const scroller = scrollerRef.current;
+    if (scroller) {
+      const firstCard = scroller.children[0];
+      if (firstCard) {
+        scroller.scrollLeft = 0;
+      }
+    }
+    window.addEventListener('resize', updateParallax);
+    return () => window.removeEventListener('resize', updateParallax);
+  }, []);
+
+  const handleScroll = () => {
+    updateParallax();
+  };
+
+  const scrollBy = (offset) => {
+    if (scrollerRef.current) {
+      scrollerRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+    }
+  };
+
+  return (
+    <div className="parallax-carousel-container">
+      <button 
+        className="carousel-arrow-btn prev-btn" 
+        onClick={() => scrollBy(-350)}
+        aria-label="Previous Slide"
+      >
+        <FiChevronLeft />
+      </button>
+
+      <div 
+        className="parallax-carousel-track" 
+        ref={scrollerRef} 
+        onScroll={handleScroll}
+      >
+        {carouselData.map((item, index) => {
+          const state = cardStates[index] || { scale: 0.92, opacity: 0.7, parallaxX: 0, isCenter: false };
+          return (
+            <div
+              key={item.id}
+              className={`parallax-carousel-card ${state.isCenter ? 'active-center' : ''}`}
+              style={{
+                transform: `scale(${state.scale})`,
+                opacity: state.opacity,
+              }}
+            >
+              <div className="parallax-card-media-wrapper">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="parallax-card-img"
+                  style={{
+                    transform: `translateX(${state.parallaxX}px) scale(1.18)`
+                  }}
+                />
+                <div className="parallax-card-gradient-overlay" />
+              </div>
+
+              <div className="parallax-card-content">
+                <span className="parallax-card-tag">{item.tag}</span>
+                <h3 className="parallax-card-title">{item.title}</h3>
+                <p className="parallax-card-desc">{item.desc}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <button 
+        className="carousel-arrow-btn next-btn" 
+        onClick={() => scrollBy(350)}
+        aria-label="Next Slide"
+      >
+        <FiChevronRight />
+      </button>
+    </div>
+  );
+}
+
 const FooterRotatingWord = () => {
   const words = ["WORK", "BUILD", "DESIGN", "CREATE"];
   const [index, setIndex] = useState(0);
@@ -238,15 +390,15 @@ function App() {
   const calculateExperience = () => {
     const startDate = new Date(2023, 6); // July is index 6 (0-indexed)
     const today = new Date();
-    
+
     let years = today.getFullYear() - startDate.getFullYear();
     let months = today.getMonth() - startDate.getMonth();
-    
+
     if (months < 0) {
       years--;
       months += 12;
     }
-    
+
     if (years === 0) {
       return `${months} mo${months > 1 ? 's' : ''}`;
     } else if (months === 0) {
@@ -379,7 +531,7 @@ function App() {
   // Figma Hover Frame and Elastic Drag Interaction
   useEffect(() => {
     const targetSelector = '.text-name-styled, .text-yellow-styled, .text-condensed-styled, .text-purple-styled, .text-outline-styled, .header-resume-btn, .header-chat-btn, .dock-item, .brotype-project-card, .inline-photo-card';
-    
+
     const frame = document.getElementById('figma-frame');
     const badge = document.getElementById('figma-badge');
     const chip = document.getElementById('figma-chip');
@@ -483,7 +635,7 @@ function App() {
 
       chip.style.top = `${e.clientY - 45}px`;
       chip.style.left = `${e.clientX + 15}px`;
-      
+
       const shakingEmojis = ["🫨", "🙅‍♂️", "🤦‍♂️", "🤯", "🫣"];
       const randomEmoji = shakingEmojis[Math.floor(Math.abs(dx + dy) % shakingEmojis.length)];
       chip.innerHTML = `<span class="emoji-shake">${randomEmoji}</span> ${warningText}`;
@@ -599,10 +751,10 @@ function App() {
       if (!isResizing) return;
       const dx = e.clientX - resizeStartX;
       const dy = e.clientY - resizeStartY;
-      
+
       let newWidth = resizeStartWidth;
       let newHeight = resizeStartHeight;
-      
+
       if (direction === 'br') {
         newWidth = resizeStartWidth + dx;
         newHeight = resizeStartHeight + dy;
@@ -616,10 +768,10 @@ function App() {
         newWidth = resizeStartWidth - dx;
         newHeight = resizeStartHeight - dy;
       }
-      
+
       newWidth = Math.max(80, Math.min(300, newWidth));
       newHeight = Math.max(60, Math.min(220, newHeight));
-      
+
       card.style.width = `${newWidth}px`;
       card.style.height = `${newHeight}px`;
     };
@@ -754,7 +906,7 @@ function App() {
       </div>
 
       <div className="app-wrapper">
-        
+
         {/* Sticky Header */}
         <header className={`brotype-header ${scrolled ? 'scrolled' : ''}`}>
           <div className="header-left-placeholder"></div>
@@ -905,7 +1057,7 @@ function App() {
               <div className="about-photo-card">
                 <img src={profileImg} alt="Jeevanantham Jayaraj" className="about-cutout-photo" />
               </div>
-              
+
               <div className="about-left-socials-row">
                 <a href="https://www.instagram.com/jeeva.log/" target="_blank" rel="noopener noreferrer" className="about-social-icon-item" aria-label="Instagram">
                   <FaInstagram />
@@ -996,7 +1148,7 @@ function App() {
           </div>
 
           <div className="projects-container-brotype">
-            
+
             {/* Project 1: Deloitte Dashboard */}
             <div className="brotype-project-card card-deloitte">
               <div className="project-card-left">
@@ -1225,24 +1377,8 @@ function App() {
               </svg>
             </span>
           </div>
-          
-          <div className="offscreen-grid">
-            <div className="offscreen-card">
-              <span className="story-emoji">✈️</span>
-              <h4>Travel &amp; Culture</h4>
-              <p>Exploring new places, experiencing different cultures, and drawing fresh visual inspiration from global architecture and streetscapes.</p>
-            </div>
-            <div className="offscreen-card">
-              <span className="story-emoji">📷</span>
-              <h4>Lens &amp; Frames</h4>
-              <p>Capturing candid street moments, landscape geometry, and light plays through photography with a designer's eye for framing.</p>
-            </div>
-            <div className="offscreen-card">
-              <span className="story-emoji">☕</span>
-              <h4>Coffee &amp; Deep Focus</h4>
-              <p>Fueled by filter coffee, ambient music playlists, and continuous curiosity for new creative tools and design systems.</p>
-            </div>
-          </div>
+
+          <ParallaxCardsCarousel />
         </section>
 
         {/* 7️⃣ Contact Section */}
@@ -1320,18 +1456,18 @@ function App() {
                   <FooterRotatingWord /><br />
                   TOGETHER
                 </h2>
-                
+
                 <div className="footer-email-row">
                   <FiArrowUpRight className="footer-arrow-icon" />
                   <a href="mailto:jeevanantham2002nkl@gmail.com" className="footer-email-link">jeevanantham2002nkl@gmail.com</a>
                 </div>
               </div>
-              
+
               <div className="footer-right-col">
                 <div className="footer-abstract-box">
                   <div className="footer-asterisk-wrapper">
                     <svg className="footer-asterisk-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M50 5 V95 M5 50 H95 M18.18 18.18 L81.82 81.82 M18.18 81.82 L81.82 18.18" stroke="currentColor" strokeWidth="9" strokeLinecap="round"/>
+                      <path d="M50 5 V95 M5 50 H95 M18.18 18.18 L81.82 81.82 M18.18 81.82 L81.82 18.18" stroke="currentColor" strokeWidth="9" strokeLinecap="round" />
                     </svg>
                   </div>
                 </div>
@@ -1367,7 +1503,7 @@ function App() {
       </div>
 
       {/* Floating Back to Top Button */}
-      <button 
+      <button
         className={`floating-back-to-top-btn ${showBackToTop ? 'visible' : ''}`}
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         aria-label="Back to Top"
