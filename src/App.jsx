@@ -241,12 +241,18 @@ function ParallaxCardsCarousel() {
     if (!scrollerRef.current) return;
     const scroller = scrollerRef.current;
 
-    // Infinite loop jump check
-    const singleSetWidth = scroller.scrollWidth / 3;
-    if (scroller.scrollLeft < singleSetWidth * 0.35) {
-      scroller.scrollLeft += singleSetWidth;
-    } else if (scroller.scrollLeft > singleSetWidth * 2.25) {
-      scroller.scrollLeft -= singleSetWidth;
+    // 100% Seamless Infinite Loop Reset using exact child DOM card offsets
+    if (scroller.children.length >= 8) {
+      const oneSetWidth = scroller.children[4].offsetLeft - scroller.children[0].offsetLeft;
+      if (oneSetWidth > 0) {
+        if (scroller.scrollLeft >= oneSetWidth * 2) {
+          scroller.style.scrollBehavior = 'auto';
+          scroller.scrollLeft -= oneSetWidth;
+        } else if (scroller.scrollLeft <= oneSetWidth * 0.25) {
+          scroller.style.scrollBehavior = 'auto';
+          scroller.scrollLeft += oneSetWidth;
+        }
+      }
     }
 
     const scrollerRect = scroller.getBoundingClientRect();
@@ -283,7 +289,7 @@ function ParallaxCardsCarousel() {
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (scroller) {
-      // Start in the middle set (set2) for seamless infinite scroll in both directions
+      // Start in middle set (set2) for infinite scrolling in both directions
       const set2FirstCard = scroller.children[4];
       if (set2FirstCard) {
         const offset = set2FirstCard.offsetLeft - (scroller.clientWidth / 2) + (set2FirstCard.clientWidth / 2);
@@ -292,12 +298,13 @@ function ParallaxCardsCarousel() {
       updateParallax();
     }
 
-    // Auto-scroll loop every 3 seconds
+    // Auto-scroll loop every 2.8 seconds
     autoPlayTimer.current = setInterval(() => {
       if (!isMouseDown.current && !isHovered.current && scrollerRef.current) {
-        scrollerRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+        scrollerRef.current.style.scrollBehavior = 'smooth';
+        scrollerRef.current.scrollBy({ left: 310 });
       }
-    }, 3000);
+    }, 2800);
 
     window.addEventListener('resize', updateParallax);
     return () => {

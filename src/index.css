@@ -1715,7 +1715,6 @@ html.figma-dragging-active * {
     display: flex;
     gap: 2.2rem;
     overflow-x: auto;
-    scroll-snap-type: x mandatory;
     scrollbar-width: none;
     padding: 2.2rem max(1.5rem, calc(50vw - 170px));
     width: 100%;
