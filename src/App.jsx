@@ -1,211 +1,318 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FaLinkedin, FaBehance, FaInstagram } from 'react-icons/fa6';
-import { FiArrowUpRight, FiMail, FiArrowUp, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiArrowUpRight, FiMail, FiArrowUp, FiX } from 'react-icons/fi';
 import {
   TbBrandFigma,
   TbBrandAdobePhotoshop,
   TbBrandAdobeIllustrator,
   TbBrandAdobePremiere,
   TbBrandAdobeXd,
-  TbBrandAdobeIndesign
+  TbBrandAdobeIndesign,
+  TbLayoutGrid,
+  TbComponents,
+  TbDeviceMobile
 } from 'react-icons/tb';
 import './App.css';
-import profileImg from './assets/profile.png';
+import idCardImg from './assets/id-card.png';
 import heroProfileImg from './assets/hero-profile.png';
 import beyondTravelImg from './assets/beyond-travel.png';
 import beyondStreetImg from './assets/beyond-street.png';
 import beyondWorkspaceImg from './assets/beyond-workspace.png';
 import beyondArtImg from './assets/beyond-art.png';
+import helpflowCaseStudyImg from './assets/helpflow-case-study.png';
+import insightaiCaseStudyImg from './assets/insightai-case-study.png';
 
 // Paste your Google Apps Script Web App URL below to log every visit directly to a Google Sheet (Excel-compatible)
 const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz7SPLYZVRHRvK_KZwz9HrgCxGrx1jVzVd6DRzEuiqeJzygNsoeeN5XfqVfDUfD7tnCBQ/exec";
 
-const skillsList = [
+const expertiseBadges = [
   {
-    fileName: 'UIUX.json',
-    tag: 'Design Core',
+    id: 'ui-ux',
     title: 'UI/UX Design',
-    desc: 'Crafting intuitive user journeys, wireframes, and pixel-perfect high-fidelity layouts.',
-    chips: ['Figma', 'Wireframing', 'User Flows'],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-        <line x1="9" y1="3" x2="9" y2="21"></line>
-        <line x1="9" y1="9" x2="21" y2="9"></line>
-        <line x1="9" y1="15" x2="21" y2="15"></line>
-      </svg>
-    ),
-    theme: 'theme-blue'
+    subtitle: 'User Flows • Wireframing • Prototyping',
+    icon: <TbLayoutGrid />,
+    accent: '#3b82f6',
+    glow: 'rgba(59, 130, 246, 0.35)'
   },
   {
-    fileName: 'System.tokens',
-    tag: 'Design Operations',
+    id: 'design-systems',
     title: 'Design Systems',
-    desc: 'Developing scalable UI libraries, token frameworks, and multi-brand component standards.',
-    chips: ['Tokens Studio', 'Documentation', 'Variables'],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-        <polyline points="2 17 12 22 22 17"></polyline>
-        <polyline points="2 12 12 17 22 12"></polyline>
-      </svg>
-    ),
-    theme: 'theme-lime'
+    subtitle: 'Tokens • Variables • Component Libraries',
+    icon: <TbComponents />,
+    accent: '#1abc9c',
+    glow: 'rgba(26, 188, 156, 0.35)'
   },
   {
-    fileName: 'Brand.svg',
-    tag: 'Visual Language',
-    title: 'Visual & Brand',
-    desc: 'Establishing unique brand identities, custom vector assets, and consistent guidelines.',
-    chips: ['Illustrator', 'Branding', 'Vector Art'],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"></circle>
-        <circle cx="12" cy="10" r="3"></circle>
-        <circle cx="8" cy="14" r="2"></circle>
-        <circle cx="16" cy="14" r="2"></circle>
-      </svg>
-    ),
-    theme: 'theme-purple'
+    id: 'products',
+    title: 'Digital Products',
+    subtitle: 'SaaS Platforms • Mobile Apps • Web UI',
+    icon: <TbDeviceMobile />,
+    accent: '#ff5c28',
+    glow: 'rgba(255, 92, 40, 0.35)'
   },
   {
-    fileName: 'Tools.conf',
-    tag: 'Stack & Tools',
-    title: 'Tools & Software',
-    desc: 'Expert-level proficiency across industry-standard design tools and software packages.',
-    chips: ['Figma', 'Adobe XD', 'Photoshop', 'Illustrator'],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
-      </svg>
-    ),
-    theme: 'theme-orange'
-  },
-  {
-    fileName: 'Products.tsx',
-    tag: 'Target Formats',
-    title: 'Product Types',
-    desc: 'Designing responsive interfaces for web applications, enterprise SaaS platforms, and mobile apps.',
-    chips: ['Web Apps', 'SaaS Dashboards', 'iOS & Android'],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-        <line x1="8" y1="21" x2="16" y2="21"></line>
-        <line x1="12" y1="17" x2="12" y2="21"></line>
-      </svg>
-    ),
-    theme: 'theme-cyan'
-  },
-  {
-    fileName: 'Handoff.yaml',
-    tag: 'Handoff & Ops',
-    title: 'Collaboration',
-    desc: 'Bridging developer-designer communication with complete specs and design-token mapping.',
-    chips: ['Specs Ready', 'Agile Handoff', 'Tokens Map'],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-        <circle cx="9" cy="7" r="4"></circle>
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-      </svg>
-    ),
-    theme: 'theme-green'
+    id: 'tools',
+    title: 'Figma & Creative Suite',
+    subtitle: 'Figma • Illustrator • Photoshop • XD',
+    icon: <TbBrandFigma />,
+    accent: '#ffd043',
+    glow: 'rgba(255, 208, 67, 0.35)'
   }
 ];
 
-const DraggableSkillCard = ({ skill }) => {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+const InteractiveIdBadge = () => {
+  const [transform, setTransform] = useState({ x: 0, y: 0, rot: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const dragStart = useRef({ x: 0, y: 0 });
+  const badgeRef = useRef(null);
 
-  const handleMouseDown = (e) => {
+  // Physics state ref (runs at 60/120fps synchronized via RAF)
+  const physicsRef = useRef({
+    x: 0,
+    y: 0,
+    vx: 0,
+    vy: 0,
+    rot: 0,
+    isDragging: false,
+    dragStart: { x: 0, y: 0 },
+    lastPointer: { x: 0, y: 0, time: 0 }
+  });
+
+  const rafRef = useRef(null);
+
+  useEffect(() => {
+    let lastTime = performance.now();
+
+    const updatePhysics = (now) => {
+      const dt = Math.min((now - lastTime) / 1000, 0.032);
+      lastTime = now;
+      const s = physicsRef.current;
+
+      if (!s.isDragging) {
+        // Damped harmonic oscillator (Hooke's spring simulation)
+        const stiffness = 140;
+        const damping = 9.5;
+
+        const ax = -stiffness * s.x - damping * s.vx;
+        const ay = -stiffness * s.y - damping * s.vy;
+
+        s.vx += ax * dt;
+        s.vy += ay * dt;
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+
+        // Dynamic rotation with pendulum sway
+        s.rot = s.x * 0.10 + s.vx * 0.008;
+
+        // Settle when resting
+        if (
+          Math.abs(s.x) < 0.02 &&
+          Math.abs(s.y) < 0.02 &&
+          Math.abs(s.vx) < 0.02 &&
+          Math.abs(s.vy) < 0.02
+        ) {
+          s.x = 0;
+          s.y = 0;
+          s.vx = 0;
+          s.vy = 0;
+          s.rot = 0;
+        }
+      } else {
+        // Rotation directly follows drag displacement while held
+        s.rot = s.x * 0.08;
+      }
+
+      setTransform({ x: s.x, y: s.y, rot: s.rot });
+      rafRef.current = requestAnimationFrame(updatePhysics);
+    };
+
+    rafRef.current = requestAnimationFrame(updatePhysics);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
+
+  const handlePointerDown = (e) => {
+    e.preventDefault();
+    const s = physicsRef.current;
+    s.isDragging = true;
     setIsDragging(true);
-    dragStart.current = { x: e.clientX - position.x, y: e.clientY - position.y };
+    s.vx = 0;
+    s.vy = 0;
+    s.dragStart = {
+      x: e.clientX - s.x,
+      y: e.clientY - s.y
+    };
+    s.lastPointer = {
+      x: e.clientX,
+      y: e.clientY,
+      time: performance.now()
+    };
+
+    const onPointerMove = (ev) => {
+      if (!s.isDragging) return;
+
+      const rawX = ev.clientX - s.dragStart.x;
+      const rawY = ev.clientY - s.dragStart.y;
+
+      // Generous, smooth drag limits without getting stuck
+      // Horizontal max ~300px with soft asymptotic curve
+      const maxDragX = 320;
+      const clampedX = Math.sign(rawX) * maxDragX * (1 - Math.exp(-Math.abs(rawX) / (maxDragX * 0.75)));
+
+      // Vertical: Downwards generous pull up to ~460px, Upwards ~140px
+      let clampedY;
+      if (rawY > 0) {
+        const maxDragYDown = 460;
+        clampedY = maxDragYDown * (1 - Math.exp(-rawY / (maxDragYDown * 0.7)));
+      } else {
+        const maxDragYUp = 140;
+        clampedY = -maxDragYUp * (1 - Math.exp(rawY / (maxDragYUp * 0.7)));
+      }
+
+      const now = performance.now();
+      const dt = Math.max((now - s.lastPointer.time) / 1000, 0.008);
+      if (dt > 0 && dt < 0.1) {
+        s.vx = (clampedX - s.x) / dt * 0.22;
+        s.vy = (clampedY - s.y) / dt * 0.22;
+      }
+      s.lastPointer = { x: ev.clientX, y: ev.clientY, time: now };
+
+      s.x = clampedX;
+      s.y = clampedY;
+    };
+
+    const onPointerUp = () => {
+      s.isDragging = false;
+      setIsDragging(false);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+    };
+
+    window.addEventListener('pointermove', onPointerMove, { passive: false });
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
   };
 
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    const newX = e.clientX - dragStart.current.x;
-    const newY = e.clientY - dragStart.current.y;
-    // Rubber band damping
-    setPosition({ x: newX * 0.6, y: newY * 0.6 });
-  };
-
-  const handleMouseUpOrLeave = () => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    setPosition({ x: 0, y: 0 });
-  };
-
-  const handleTouchStart = (e) => {
-    const touch = e.touches[0];
-    setIsDragging(true);
-    dragStart.current = { x: touch.clientX - position.x, y: touch.clientY - position.y };
-  };
-
-  const handleTouchMove = (e) => {
-    if (!isDragging) return;
-    const touch = e.touches[0];
-    const newX = touch.clientX - dragStart.current.x;
-    const newY = touch.clientY - dragStart.current.y;
-    setPosition({ x: newX * 0.6, y: newY * 0.6 });
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-    setPosition({ x: 0, y: 0 });
-  };
+  // SVG Anchor & Clip Coordinates (viewBox: 280 x 500)
+  const anchorX = 140;
+  const anchorY = 0;
+  const clipX = 140 + transform.x;
+  const clipY = 82 + transform.y;
+  const strapHalfW = 18; // 36px wide premium lanyard band
 
   return (
-    <div
-      className={`draggable-skill-card ${isDragging ? 'dragging' : ''}`}
-      style={{
-        transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
-        transition: isDragging ? 'none' : 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)'
-      }}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUpOrLeave}
-      onMouseLeave={handleMouseUpOrLeave}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      <div className="card-drag-indicator">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-          <circle cx="9" cy="9" r="1.5"></circle>
-          <circle cx="9" cy="15" r="1.5"></circle>
-          <circle cx="15" cy="9" r="1.5"></circle>
-          <circle cx="15" cy="15" r="1.5"></circle>
-        </svg>
+    <div className="id-lanyard-wrapper">
+      {/* Background Ambient Lighting behind ID Card */}
+      <div
+        className="id-card-backdrop-lighting"
+        style={{
+          transform: `translate3d(${transform.x * 0.45}px, ${transform.y * 0.45}px, 0)`
+        }}
+      >
+        <div className="backdrop-light-primary" />
+        <div className="backdrop-light-cyan" />
       </div>
-      <div className="skill-card-top">
-        <div className="skill-card-icon-badge">
-          {skill.icon}
-        </div>
-        <span className="skill-card-tag">{skill.tag}</span>
+
+      {/* SVG Synchronized Lanyard Band, Wall Buckle & Swivel Clasp */}
+      <svg className="lanyard-strap-svg" viewBox="0 0 280 500">
+        <defs>
+          <linearGradient id="bandGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#1e3a8a" />
+            <stop offset="25%" stopColor="#2563eb" />
+            <stop offset="50%" stopColor="#3b82f6" />
+            <stop offset="75%" stopColor="#2563eb" />
+            <stop offset="100%" stopColor="#1d4ed8" />
+          </linearGradient>
+          <linearGradient id="bandStripe" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.4)" />
+            <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+          </linearGradient>
+          <linearGradient id="chromeMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="35%" stopColor="#cbd5e1" />
+            <stop offset="70%" stopColor="#64748b" />
+            <stop offset="100%" stopColor="#334155" />
+          </linearGradient>
+        </defs>
+
+        {/* Wide Lanyard Fabric Band */}
+        <path
+          d={`M ${anchorX - strapHalfW} ${anchorY} 
+             Q ${anchorX - strapHalfW * 0.7 + transform.x * 0.3} ${(anchorY + clipY) * 0.5} ${clipX - 14} ${clipY - 14}
+             L ${clipX + 14} ${clipY - 14}
+             Q ${anchorX + strapHalfW * 0.7 + transform.x * 0.3} ${(anchorY + clipY) * 0.5} ${anchorX + strapHalfW} ${anchorY}
+             Z`}
+          fill="url(#bandGrad)"
+          opacity="0.96"
+        />
+
+        {/* Band Edge Stitching Accent */}
+        <path
+          d={`M ${anchorX - strapHalfW + 3} ${anchorY} 
+             Q ${anchorX - strapHalfW * 0.7 + 3 + transform.x * 0.3} ${(anchorY + clipY) * 0.5} ${clipX - 11} ${clipY - 14}`}
+          stroke="rgba(255,255,255,0.35)"
+          strokeWidth="1.5"
+          strokeDasharray="4 3"
+          fill="none"
+        />
+        <path
+          d={`M ${anchorX + strapHalfW - 3} ${anchorY} 
+             Q ${anchorX + strapHalfW * 0.7 - 3 + transform.x * 0.3} ${(anchorY + clipY) * 0.5} ${clipX + 11} ${clipY - 14}`}
+          stroke="rgba(255,255,255,0.35)"
+          strokeWidth="1.5"
+          strokeDasharray="4 3"
+          fill="none"
+        />
+
+        {/* Top Anchor Chrome Buckle */}
+        <rect x={anchorX - 22} y={anchorY} width="44" height="8" rx="2" fill="url(#chromeMetal)" stroke="#0f172a" strokeWidth="1" />
+        <ellipse cx={anchorX} cy={anchorY + 3} rx="12" ry="3" fill="#1e293b" />
+
+        {/* Swivel Clasp & Hook passing through ID card hole */}
+        <g transform={`translate(${clipX}, ${clipY - 14})`}>
+          <rect x="-16" y="-7" width="32" height="9" rx="2.5" fill="url(#chromeMetal)" stroke="#0f172a" strokeWidth="1" />
+          <path d="M -8 2 L -8 16 Q 0 20 8 16 L 8 2 Z" fill="url(#chromeMetal)" stroke="#0f172a" strokeWidth="1" />
+          {/* Steel hook looping through slot */}
+          <path d="M -4 10 Q 0 24 4 10" fill="none" stroke="#f8fafc" strokeWidth="3" strokeLinecap="round" />
+          <circle cx="0" cy="8" r="2" fill="#0f172a" />
+        </g>
+      </svg>
+
+      {/* Synchronized Draggable ID Card */}
+      <div
+        ref={badgeRef}
+        className={`interactive-id-card ${isDragging ? 'dragging' : ''}`}
+        style={{
+          transform: `translate3d(${transform.x}px, ${transform.y}px, 0) rotate(${transform.rot}deg)`,
+          transition: 'none'
+        }}
+        onPointerDown={handlePointerDown}
+      >
+        <div className="id-card-gloss-sheen" />
+        <div className="id-card-rim-light" />
+        <img
+          src={idCardImg}
+          alt="Jeevanantham J - UI / UX Designer ID Card"
+          className="id-card-image"
+          draggable="false"
+        />
       </div>
-      <h3 className="skill-card-title">{skill.title}</h3>
-      <p className="skill-card-desc">{skill.desc}</p>
-      <div className="skill-card-chips">
-        {skill.chips.map((chip, idx) => (
-          <span key={idx} className="skill-chip">{chip}</span>
-        ))}
-      </div>
+
+      {/* Dynamic Bottom Contact Ground Shadow */}
+      <div
+        className="id-card-bottom-floor-shadow"
+        style={{
+          transform: `translate3d(${transform.x * 0.65}px, ${Math.max(0, transform.y * 0.25)}px, 0) scale(${Math.max(0.65, 1 - transform.y / 350)}, ${Math.max(0.5, 1 - transform.y / 400)})`,
+          opacity: Math.max(0.25, 0.85 - transform.y / 300)
+        }}
+      />
     </div>
   );
 };
 
 function ParallaxCardsCarousel() {
-  const scrollerRef = useRef(null);
-  const [cardStates, setCardStates] = useState([]);
-  const isMouseDown = useRef(false);
-  const isHovered = useRef(false);
-  const startX = useRef(0);
-  const scrollLeftStart = useRef(0);
-  const isDraggingMove = useRef(false);
-  const autoPlayTimer = useRef(null);
+  const containerRef = useRef(null);
 
   const rawCarouselData = [
     {
@@ -230,195 +337,83 @@ function ParallaxCardsCarousel() {
     },
   ];
 
-  // Repeat 5 sets for flawless 360-degree continuous infinite looping
+  // Repeat 3 identical sets for 100% seamless resolution-independent marquee scrolling
   const carouselData = [
     ...rawCarouselData.map((d) => ({ ...d, uniqueKey: `set1-${d.id}` })),
     ...rawCarouselData.map((d) => ({ ...d, uniqueKey: `set2-${d.id}` })),
     ...rawCarouselData.map((d) => ({ ...d, uniqueKey: `set3-${d.id}` })),
-    ...rawCarouselData.map((d) => ({ ...d, uniqueKey: `set4-${d.id}` })),
-    ...rawCarouselData.map((d) => ({ ...d, uniqueKey: `set5-${d.id}` })),
   ];
 
-  const updateParallax = () => {
-    if (!scrollerRef.current) return;
-    const scroller = scrollerRef.current;
-
-    // 100% Flawless Seamless Infinite Loop Reset
-    if (scroller.children.length >= 12) {
-      const oneSetWidth = scroller.children[4].offsetLeft - scroller.children[0].offsetLeft;
-      if (oneSetWidth > 0) {
-        if (scroller.scrollLeft >= oneSetWidth * 3.2) {
-          scroller.style.scrollBehavior = 'auto';
-          scroller.scrollLeft -= oneSetWidth * 2;
-        } else if (scroller.scrollLeft <= oneSetWidth * 0.8) {
-          scroller.style.scrollBehavior = 'auto';
-          scroller.scrollLeft += oneSetWidth * 2;
-        }
-      }
-    }
-
-    const scrollerRect = scroller.getBoundingClientRect();
-    const scrollerCenter = scrollerRect.left + scrollerRect.width / 2;
-
-    const cards = scroller.querySelectorAll('.parallax-carousel-card');
-    const newStates = [];
-
-    cards.forEach((card) => {
-      const cardRect = card.getBoundingClientRect();
-      const cardCenter = cardRect.left + cardRect.width / 2;
-      const distanceFromCenter = cardCenter - scrollerCenter;
-      
-      const normalizedDist = Math.min(Math.max(distanceFromCenter / (scrollerRect.width * 0.36), -1.5), 1.5);
-      const absDist = Math.abs(normalizedDist);
-
-      const scale = 1.06 - Math.min(absDist, 1) * 0.16;
-      const imgScale = 1.06 + (1 - Math.min(absDist, 1)) * 0.32;
-      
-      // Dynamic directional zoom transform origin:
-      // Left-to-right scroll: image zooms towards right side (88%)
-      // Right-to-left scroll: image zooms towards left side (12%)
-      const originX = Math.round(50 + (normalizedDist * 38));
-      const transformOrigin = `${originX}% 50%`;
-      const parallaxX = -normalizedDist * 52;
-
-      // 3 cards fully visible window: Center card + 1 Left card + 1 Right card (absDist <= 1.25)
-      // Exactly 3 un-cut cards visible with ZERO 4th card peeking!
-      const opacity = absDist > 1.25 ? 0 : Math.max(0, 1 - Math.min(absDist, 1) * 0.25);
-
-      newStates.push({
-        scale: scale.toFixed(3),
-        imgScale: imgScale.toFixed(3),
-        transformOrigin,
-        opacity: opacity.toFixed(3),
-        parallaxX: parallaxX.toFixed(1),
-        isCenter: absDist < 0.35,
-      });
-    });
-
-    setCardStates(newStates);
-  };
-
   useEffect(() => {
-    const scroller = scrollerRef.current;
-    if (scroller) {
-      // Start in middle set (set3) for infinite scrolling in both directions
-      const set3FirstCard = scroller.children[8];
-      if (set3FirstCard) {
-        const offset = set3FirstCard.offsetLeft - (scroller.clientWidth / 2) + (set3FirstCard.clientWidth / 2);
-        scroller.scrollLeft = offset;
-      }
-      updateParallax();
-    }
+    let animFrameId;
 
-    // Auto-scroll loop every 2.8 seconds
-    autoPlayTimer.current = setInterval(() => {
-      if (!isMouseDown.current && !isHovered.current && scrollerRef.current) {
-        scrollerRef.current.style.scrollBehavior = 'smooth';
-        scrollerRef.current.scrollBy({ left: 324 });
-      }
-    }, 2800);
+    const updateCenterZoom = () => {
+      if (!containerRef.current) return;
+      const container = containerRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const containerCenter = containerRect.left + containerRect.width / 2;
 
-    window.addEventListener('resize', updateParallax);
+      const cards = container.querySelectorAll('.parallax-carousel-card');
+
+      cards.forEach((card) => {
+        const cardRect = card.getBoundingClientRect();
+        const cardCenter = cardRect.left + cardRect.width / 2;
+        const distanceFromCenter = Math.abs(cardCenter - containerCenter);
+
+        // Normalize distance (0 at center, 1 when 320px away)
+        const normDist = Math.min(distanceFromCenter / 320, 1.0);
+
+        // Frame scale: zooms up to 1.10x in center, 0.94x on sides
+        const frameScale = 1.10 - normDist * 0.16;
+
+        // Image counter-scale: exact reciprocal so inner image NEVER zooms
+        const imgCounterScale = 1.25 / frameScale;
+
+        // Smooth parallax image shift as card moves across screen
+        const parallaxX = ((cardCenter - containerCenter) / (containerRect.width * 0.5)) * -40;
+
+        card.style.transform = `scale(${frameScale.toFixed(3)})`;
+        if (normDist < 0.35) {
+          card.classList.add('active-center');
+        } else {
+          card.classList.remove('active-center');
+        }
+
+        const img = card.querySelector('.parallax-card-img');
+        if (img) {
+          img.style.transform = `translateX(${parallaxX.toFixed(1)}px) scale(${imgCounterScale.toFixed(3)})`;
+        }
+      });
+
+      animFrameId = requestAnimationFrame(updateCenterZoom);
+    };
+
+    animFrameId = requestAnimationFrame(updateCenterZoom);
+
     return () => {
-      if (autoPlayTimer.current) clearInterval(autoPlayTimer.current);
-      window.removeEventListener('resize', updateParallax);
+      if (animFrameId) cancelAnimationFrame(animFrameId);
     };
   }, []);
 
-  const handleScroll = () => {
-    updateParallax();
-  };
-
-  const scrollToCard = (index) => {
-    if (!scrollerRef.current || isDraggingMove.current) return;
-    const cards = scrollerRef.current.querySelectorAll('.parallax-carousel-card');
-    const targetCard = cards[index];
-    if (targetCard) {
-      const scroller = scrollerRef.current;
-      const offset = targetCard.offsetLeft - (scroller.clientWidth / 2) + (targetCard.clientWidth / 2);
-      scroller.scrollTo({ left: offset, behavior: 'smooth' });
-    }
-  };
-
-  // Desktop Mouse Click & Drag
-  const handleMouseDown = (e) => {
-    if (!scrollerRef.current) return;
-    isMouseDown.current = true;
-    isDraggingMove.current = false;
-    startX.current = e.pageX - scrollerRef.current.offsetLeft;
-    scrollLeftStart.current = scrollerRef.current.scrollLeft;
-    scrollerRef.current.style.scrollBehavior = 'auto';
-  };
-
-  const handleMouseLeaveOrUp = () => {
-    isMouseDown.current = false;
-    isHovered.current = false;
-    if (scrollerRef.current) {
-      scrollerRef.current.style.scrollBehavior = 'smooth';
-    }
-  };
-
-  const handleMouseEnter = () => {
-    isHovered.current = true;
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isMouseDown.current || !scrollerRef.current) return;
-    const x = e.pageX - scrollerRef.current.offsetLeft;
-    const walk = (x - startX.current) * 1.5;
-    if (Math.abs(walk) > 5) {
-      isDraggingMove.current = true;
-    }
-    scrollerRef.current.scrollLeft = scrollLeftStart.current - walk;
-    updateParallax();
-  };
-
   return (
-    <div 
-      className="parallax-carousel-container"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeaveOrUp}
-    >
-      <div 
-        className="parallax-carousel-track" 
-        ref={scrollerRef} 
-        onScroll={handleScroll}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseLeaveOrUp}
-        onMouseMove={handleMouseMove}
-      >
-        {carouselData.map((item, index) => {
-          const state = cardStates[index] || { scale: 0.90, imgScale: 1.06, transformOrigin: '50% 50%', opacity: 0, parallaxX: 0, isCenter: false };
-          return (
-            <div
-              key={item.uniqueKey}
-              className={`parallax-carousel-card ${state.isCenter ? 'active-center' : ''}`}
-              style={{
-                transform: `scale(${state.scale})`,
-                opacity: state.opacity,
-                pointerEvents: state.opacity > 0.1 ? 'auto' : 'none'
-              }}
-              onClick={() => scrollToCard(index)}
-            >
-              <div className="parallax-card-media-wrapper">
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="parallax-card-img"
-                  style={{
-                    transformOrigin: state.transformOrigin || '50% 50%',
-                    transform: `translateX(${state.parallaxX}px) scale(${state.imgScale})`
-                  }}
-                />
-                <div className="parallax-card-gradient-overlay" />
-              </div>
-
-              <div className="parallax-card-content">
-                <h3 className="parallax-card-title">{item.title}</h3>
-              </div>
+    <div className="parallax-carousel-container" ref={containerRef}>
+      <div className="parallax-carousel-track">
+        {carouselData.map((item) => (
+          <div key={item.uniqueKey} className="parallax-carousel-card">
+            <div className="parallax-card-media-wrapper">
+              <img
+                src={item.image}
+                alt={item.title}
+                className="parallax-card-img"
+              />
+              <div className="parallax-card-gradient-overlay" />
             </div>
-          );
-        })}
+
+            <div className="parallax-card-content">
+              <h3 className="parallax-card-title">{item.title}</h3>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -453,9 +448,364 @@ const FooterRotatingWord = () => {
   );
 };
 
+const renderProjectPreview = (id) => {
+  switch (id) {
+    case 'helpflow':
+    case 'deloitte':
+      return (
+        <div className="modal-preview-real-image-container">
+          <img
+            src={helpflowCaseStudyImg}
+            alt="HelpFlow AI Responsive SaaS Platform"
+            className="modal-preview-real-image"
+          />
+        </div>
+      );
+    case 'insightai':
+    case 'neobank':
+      return (
+        <div className="modal-preview-real-image-container">
+          <img
+            src={insightaiCaseStudyImg}
+            alt="InsightAI Conversational Business Data Platform"
+            className="modal-preview-real-image"
+          />
+        </div>
+      );
+    case 'aerospace':
+      return (
+        <div className="modal-preview-phone-stage">
+          <div className="mockup-phone dark-theme">
+            <div className="phone-screen">
+              <div className="phone-header">
+                <span className="phone-logo">AeroAI</span>
+                <span className="phone-status">Online</span>
+              </div>
+              <div className="chat-bubble bot">Turbine telemetry online. System ready.</div>
+              <div className="chat-bubble user">Status on Fan Blade 4?</div>
+              <div className="chat-bubble bot highlighted">All sensors normal. Rotation speed: 2,400 RPM. Temp: 85°C.</div>
+              <div className="chat-input-mock">Query technical telemetry...</div>
+            </div>
+          </div>
+        </div>
+      );
+    case 'omnisystem':
+      return (
+        <div className="modal-preview-tokens-stage">
+          <div className="tokens-grid">
+            <div className="token-card-ui"><span className="color-preview blue"></span><code>--color-primary: #3b82f6</code></div>
+            <div className="token-card-ui"><span className="color-preview teal"></span><code>--color-success: #1abc9c</code></div>
+            <div className="token-card-ui"><span className="color-preview yellow"></span><code>--color-warning: #eab308</code></div>
+            <div className="token-card-ui"><span className="color-preview purple"></span><code>--color-accent: #8b5cf6</code></div>
+            <div className="token-card-ui"><code>--radius-md: 12px</code></div>
+            <div className="token-card-ui"><code>--spacing-lg: 24px</code></div>
+          </div>
+        </div>
+      );
+    case 'healthtech':
+      return (
+        <div className="modal-preview-browser">
+          <div className="modal-preview-header">
+            <span className="dot red"></span><span className="dot yellow"></span><span className="dot green"></span>
+            <span className="modal-preview-url">healthtech.internal/patient/vitals-monitor</span>
+          </div>
+          <div className="health-content-grid modal-health-grid">
+            <div className="health-sidebar-mock"></div>
+            <div className="health-body-mock">
+              <div className="health-stat-pill">Resting Heart Rate: 68 BPM • Normal</div>
+              <div className="health-chart-mock"></div>
+            </div>
+          </div>
+        </div>
+      );
+    default:
+      return null;
+  }
+};
+
+const caseStudyData = {
+  helpflow: {
+    id: 'helpflow',
+    category: 'Responsive SaaS Website',
+    title: 'HelpFlow AI',
+    tagline: 'A responsive SaaS website for an AI-powered customer support platform.',
+    overview: 'HelpFlow helps teams manage support tickets, automate repetitive replies, prioritize urgent issues, and respond faster.',
+    problem: 'AI support tools often have many features, which can make the product difficult to understand quickly. Goal: Make HelpFlow’s value clear, simple, and easy to explore.',
+    solution: 'Structured around Understand → Explore → Trust → Convert. Shows the product dashboard early, presents one feature at a time with alternating layouts, and focuses copy on benefits rather than technical AI jargon.',
+    funnelSteps: ['Understand', 'Explore', 'Trust', 'Convert'],
+    features: [
+      { title: 'Early Product Dashboard', desc: 'Showed the UI early to immediately build comprehension and user trust.' },
+      { title: 'Single-Focus Feature Narrative', desc: 'Presented one feature at a time instead of using a crowded, overwhelming grid.' },
+      { title: 'Benefit-Focused Copywriting', desc: 'Crafted clear benefit-driven messaging free of confusing technical jargon.' },
+      { title: 'Responsive Multi-Device System', desc: 'Designed consistent user journey across Desktop, Tablet, and Mobile.' }
+    ],
+    metrics: [
+      { num: '4-Step', label: 'UX Funnel', sub: 'Understand → Convert' },
+      { num: '3 Sizes', label: 'Responsive', sub: 'Desktop, Tab & Mobile' },
+      { num: '100%', label: 'Clarity Focus', sub: 'Benefit-driven UX' }
+    ],
+    tools: ['Figma', 'Responsive SaaS', 'AI Product UX', 'Information Architecture', 'Design System']
+  },
+  deloitte: {
+    id: 'helpflow',
+    category: 'Responsive SaaS Website',
+    title: 'HelpFlow AI',
+    tagline: 'A responsive SaaS website for an AI-powered customer support platform.',
+    overview: 'HelpFlow helps teams manage support tickets, automate repetitive replies, prioritize urgent issues, and respond faster.',
+    problem: 'AI support tools often have many features, which can make the product difficult to understand quickly. Goal: Make HelpFlow’s value clear, simple, and easy to explore.',
+    solution: 'Structured around Understand → Explore → Trust → Convert. Shows the product dashboard early, presents one feature at a time with alternating layouts, and focuses copy on benefits rather than technical AI jargon.',
+    funnelSteps: ['Understand', 'Explore', 'Trust', 'Convert'],
+    features: [
+      { title: 'Early Product Dashboard', desc: 'Showed the UI early to immediately build comprehension and user trust.' },
+      { title: 'Single-Focus Feature Narrative', desc: 'Presented one feature at a time instead of using a crowded, overwhelming grid.' },
+      { title: 'Benefit-Focused Copywriting', desc: 'Crafted clear benefit-driven messaging free of confusing technical jargon.' },
+      { title: 'Responsive Multi-Device System', desc: 'Designed consistent user journey across Desktop, Tablet, and Mobile.' }
+    ],
+    metrics: [
+      { num: '4-Step', label: 'UX Funnel', sub: 'Understand → Convert' },
+      { num: '3 Sizes', label: 'Responsive', sub: 'Desktop, Tab & Mobile' },
+      { num: '100%', label: 'Clarity Focus', sub: 'Benefit-driven UX' }
+    ],
+    tools: ['Figma', 'Responsive SaaS', 'AI Product UX', 'Information Architecture', 'Design System']
+  },
+  insightai: {
+    id: 'insightai',
+    category: 'Conversational Business AI',
+    title: 'InsightAI',
+    tagline: 'Conversational AI for business data exploration and sales intelligence.',
+    overview: 'InsightAI helps users explore sales and brand data by asking questions in natural language. Instead of navigating multiple dashboards and filters, users can ask: “Which suppliers are driving growth in Europe?” and get structured, data-backed answers.',
+    problem: 'Business users often spend too much time finding the right report, applying filters, and comparing data. Goal: Make data exploration faster and easier without losing trust or transparency.',
+    solution: 'Structured around Ask → Analyze → Verify → Reuse. Ask questions naturally, get structured insights, review source data, save useful questions to favourites, and revisit previous chats.',
+    funnelSteps: ['Ask', 'Analyze', 'Verify', 'Reuse'],
+    features: [
+      { title: 'Chat-Driven Exploration', desc: 'Used conversational chat as the main way to explore complex business data.' },
+      { title: 'Structured Comparison Tables', desc: 'Showed results in structured data tables for fast, clear comparison.' },
+      { title: 'Favourites & Recent Workflows', desc: 'Added favourites and recent chats for repeated analysis and rapid revisit.' },
+      { title: 'Dataset & Source Transparency', desc: 'Included sources and dataset details to improve trust and auditability.' },
+      { title: 'Enterprise Responsible-AI Guidance', desc: 'Added help and responsible-AI guidance for enterprise compliance.' }
+    ],
+    metrics: [
+      { num: '4-Step', label: 'UX Cycle', sub: 'Ask → Analyze → Reuse' },
+      { num: 'Instant', label: 'Natural Q&A', sub: 'No complex filters' },
+      { num: '100%', label: 'Traceability', sub: 'Source-backed answers' }
+    ],
+    tools: ['Figma', 'Conversational AI UX', 'Enterprise BI', 'Data Visualization', 'Design Systems']
+  },
+  neobank: {
+    id: 'insightai',
+    category: 'Conversational Business AI',
+    title: 'InsightAI',
+    tagline: 'Conversational AI for business data exploration and sales intelligence.',
+    overview: 'InsightAI helps users explore sales and brand data by asking questions in natural language. Instead of navigating multiple dashboards and filters, users can ask: “Which suppliers are driving growth in Europe?” and get structured, data-backed answers.',
+    problem: 'Business users often spend too much time finding the right report, applying filters, and comparing data. Goal: Make data exploration faster and easier without losing trust or transparency.',
+    solution: 'Structured around Ask → Analyze → Verify → Reuse. Ask questions naturally, get structured insights, review source data, save useful questions to favourites, and revisit previous chats.',
+    funnelSteps: ['Ask', 'Analyze', 'Verify', 'Reuse'],
+    features: [
+      { title: 'Chat-Driven Exploration', desc: 'Used conversational chat as the main way to explore complex business data.' },
+      { title: 'Structured Comparison Tables', desc: 'Showed results in structured data tables for fast, clear comparison.' },
+      { title: 'Favourites & Recent Workflows', desc: 'Added favourites and recent chats for repeated analysis and rapid revisit.' },
+      { title: 'Dataset & Source Transparency', desc: 'Included sources and dataset details to improve trust and auditability.' },
+      { title: 'Enterprise Responsible-AI Guidance', desc: 'Added help and responsible-AI guidance for enterprise compliance.' }
+    ],
+    metrics: [
+      { num: '4-Step', label: 'UX Cycle', sub: 'Ask → Analyze → Reuse' },
+      { num: 'Instant', label: 'Natural Q&A', sub: 'No complex filters' },
+      { num: '100%', label: 'Traceability', sub: 'Source-backed answers' }
+    ],
+    tools: ['Figma', 'Conversational AI UX', 'Enterprise BI', 'Data Visualization', 'Design Systems']
+  },
+  aerospace: {
+    id: 'aerospace',
+    category: 'Industrial AI Assistant',
+    title: 'AeroSpace AI Copilot',
+    tagline: 'Conversational AI interface allowing field technicians to query maintenance manuals and live sensor telemetry hands-free.',
+    overview: 'An intelligent operational assistant designed for aerospace technicians working on aircraft engines and hangar machinery. Translates complex telemetry queries into concise natural-language answers and schematic overlays.',
+    problem: 'Technicians handling heavy machinery could not easily search through thousands of pages of PDF maintenance manuals while diagnosing engine turbines.',
+    solution: 'Developed an accessible high-contrast dark AI interface with rapid voice queries, step-by-step repair checklists, and instant schematic visualizers.',
+    features: [
+      { title: 'Natural Language Diagnostics', desc: 'Query turbine sensor telemetry using conversational phrasing.' },
+      { title: 'High-Contrast Dark Theme', desc: 'Optimized for low-light hangars and field operations.' },
+      { title: 'Offline Resilience', desc: 'Gracefully caches diagrams and checklists for zero-connectivity zones.' }
+    ],
+    metrics: [
+      { num: '65%', label: 'Faster Search', sub: 'Manual lookup time' },
+      { num: '100%', label: 'Safety Guardrails', sub: 'Double confirmation' },
+      { num: '0', label: 'False Actions', sub: 'Verified AI outputs' }
+    ],
+    tools: ['Figma', 'AI Interfaces', 'Micro-Interactions', 'Industrial UX', 'Prototyping']
+  },
+  omnisystem: {
+    id: 'omnisystem',
+    category: 'Design Systems Architecture',
+    title: 'OmniSystem Multi-Brand Library',
+    tagline: 'Scalable design token architecture and 200+ reusable Figma components for enterprise web and mobile products.',
+    overview: 'A unified multi-brand design system built to bridge product design and frontend development across multiple digital platforms with automated token pipelines.',
+    problem: 'Product teams suffered from duplicate component libraries, inconsistent brand colors, and fragmented styling across four distinct digital apps.',
+    solution: 'Architected a 3-tier token structure (Global, Semantic, Component) in Tokens Studio with automated Style Dictionary export for React codebases.',
+    features: [
+      { title: '3-Tier Token Hierarchy', desc: 'Clean separation of brand colors, semantic roles, and component styles.' },
+      { title: '200+ Auto-Layout Components', desc: 'Fully responsive Figma components with dark & light theme variants.' },
+      { title: 'Direct React Token Sync', desc: 'Automated JSON export transforming tokens directly into CSS variables.' }
+    ],
+    metrics: [
+      { num: '+200', label: 'Master Components', sub: 'Variants & variables' },
+      { num: '75%', label: 'Faster Sprints', sub: 'Pre-built layout blocks' },
+      { num: '100%', label: 'Token Mapping', sub: 'Zero style drift' }
+    ],
+    tools: ['Figma', 'Tokens Studio', 'React Handoff', 'Design Systems', 'WCAG Auditing']
+  },
+  healthtech: {
+    id: 'healthtech',
+    category: 'Healthcare & Telehealth',
+    title: 'HealthTech Patient & Clinic Portal',
+    tagline: 'Accessible healthcare platform for chronic care patients to log biometric vitals and consult clinicians seamlessly.',
+    overview: 'An accessible, patient-friendly medical dashboard designed with strict WCAG 2.1 AAA accessibility guidelines, featuring high-legibility typography, clear vital trend charts, and secure telehealth messaging.',
+    problem: 'Elderly patients with chronic conditions found existing clinic portals intimidating, cluttered, and inaccessible on mobile devices.',
+    solution: 'Crafted a simplified, calming interface with large touch targets, colorblind-safe vital graphs, and single-focus onboarding flows.',
+    features: [
+      { title: 'Accessible Vitals Tracking', desc: 'High-contrast graphs for blood pressure, pulse, and glucose logs.' },
+      { title: 'One-Touch Telehealth Booking', desc: 'Straightforward appointment scheduling with automatic SMS reminders.' },
+      { title: 'WCAG 2.1 AAA Compliance', desc: 'Tested and certified for screen readers and high-contrast modes.' }
+    ],
+    metrics: [
+      { num: 'AAA', label: 'Accessibility', sub: 'WCAG 2.1 Certified' },
+      { num: '+52%', label: 'Engagement', sub: 'Active patient logging' },
+      { num: '100%', label: 'Privacy Compliant', sub: 'Secure patient consent' }
+    ],
+    tools: ['Figma', 'WCAG 2.1 AAA', 'Responsive UI', 'Healthcare UX', 'Accessibility']
+  }
+};
+
+function CaseStudyModal({ caseStudy, onClose }) {
+  useEffect(() => {
+    if (!caseStudy) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow || '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [caseStudy, onClose]);
+
+  if (!caseStudy) return null;
+
+  return (
+    <div className="case-study-modal-backdrop" onClick={onClose}>
+      <div className="case-study-single-screen-container" onClick={(e) => e.stopPropagation()}>
+        
+        {/* Left Column: Title, Subtext, Visual Mockup & Impact Metrics */}
+        <div className="modal-col-visual">
+          
+          {/* Header on Left above Image */}
+          <div className="modal-left-hero-header">
+            <h2 className="modal-case-title">{caseStudy.title}</h2>
+            <p className="modal-case-tagline">{caseStudy.tagline}</p>
+          </div>
+
+          <div className="modal-preview-stage-container">
+            {renderProjectPreview(caseStudy.id)}
+          </div>
+
+          <div className="modal-metrics-strip-compact">
+            {caseStudy.metrics.map((m, idx) => (
+              <div key={idx} className="metric-pill-compact">
+                <span className="metric-num-compact">{m.num}</span>
+                <span className="metric-lbl-compact">{m.label}</span>
+                <span className="metric-sub-compact">{m.sub}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Column: Clean Editorial & Structured Case Study */}
+        <div className="modal-col-content">
+          
+          {/* Top Bar on Right: Close Button */}
+          <div className="modal-content-top-nav right-aligned">
+            <h3 className="modal-section-main-heading">CASE STUDY SPECIFICATIONS</h3>
+            <button className="modal-close-btn" onClick={onClose} aria-label="Close Case Study" title="Close (Esc)">
+              <FiX />
+            </button>
+          </div>
+
+          {/* Clean Editorial Story Flow (No Clutter) */}
+          <div className="modal-story-flow">
+
+            {/* Section 1: The Challenge */}
+            <div className="modal-story-block">
+              <div className="story-label-row">
+                <span className="story-idx-tag red">01</span>
+                <span className="story-label-text">THE CHALLENGE</span>
+              </div>
+              <p className="story-paragraph">{caseStudy.problem}</p>
+            </div>
+
+            {/* Section 2: UX Framework & Strategy */}
+            <div className="modal-story-block">
+              <div className="story-label-row">
+                <span className="story-idx-tag green">02</span>
+                <span className="story-label-text">UX APPROACH &amp; STRATEGY</span>
+              </div>
+              {caseStudy.funnelSteps && (
+                <div className="strategy-funnel-steps">
+                  {caseStudy.funnelSteps.map((step, sIdx) => (
+                    <React.Fragment key={sIdx}>
+                      <span className={`funnel-step ${sIdx === caseStudy.funnelSteps.length - 1 ? 'active' : ''}`}>{step}</span>
+                      {sIdx < caseStudy.funnelSteps.length - 1 && <span className="funnel-arrow">→</span>}
+                    </React.Fragment>
+                  ))}
+                </div>
+              )}
+              <p className="story-paragraph">{caseStudy.solution}</p>
+            </div>
+
+            {/* Section 3: Key Design Highlights */}
+            <div className="modal-story-block">
+              <div className="story-label-row">
+                <span className="story-idx-tag blue">03</span>
+                <span className="story-label-text">KEY DESIGN HIGHLIGHTS</span>
+              </div>
+              <div className="story-bullets-grid">
+                {caseStudy.features.map((feat, idx) => (
+                  <div key={idx} className="story-bullet-item">
+                    <span className="bullet-dot"></span>
+                    <div className="bullet-content">
+                      <strong>{feat.title}:</strong> {feat.desc}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+
+          {/* Bottom Toolstack Row */}
+          <div className="modal-story-footer">
+            <span className="footer-tools-label">DESIGN STACK:</span>
+            <div className="footer-tools-pills">
+              {caseStudy.tools.map((t, idx) => (
+                <span key={idx} className="story-tool-pill">{t}</span>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
 function App() {
+  const [selectedCaseStudy, setSelectedCaseStudy] = useState(null);
   const [activeSection, setActiveSection] = useState('hero');
-  const [activeSkillIndex, setActiveSkillIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState('');
   const [formStatus, setFormStatus] = useState('idle'); // 'idle' | 'sending' | 'success' | 'error'
   const [formMessage, setFormMessage] = useState('');
@@ -463,7 +813,6 @@ function App() {
   const [visitorGeo, setVisitorGeo] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const skillsWrapperRef = useRef(null);
 
   // Calculate experience duration dynamically from July 2023
   const calculateExperience = () => {
@@ -1130,79 +1479,118 @@ function App() {
             </span>
           </div>
 
-          <div className="about-modern-container">
-            {/* Left Column: Cutout Portrait + Organic Blob Backdrop + Social Links */}
-            <div className="about-modern-left">
-              <div className="about-photo-card">
-                <img src={profileImg} alt="Jeevanantham Jayaraj" className="about-cutout-photo" />
+          {/* Connected Architectural Grid Frame */}
+          <div className="about-connected-frame">
+            <div className="about-grid-main-row">
+              {/* Connected Left Cell: Interactive Lanyard ID Card Badge + Social Links */}
+              <div className="about-grid-cell about-cell-left">
+                <span className="cell-corner-crosshair top-left">+</span>
+                <span className="cell-corner-crosshair top-right">+</span>
+                <InteractiveIdBadge />
+
+                <div className="about-left-socials-row">
+                  <a href="https://www.instagram.com/jeeva.log/" target="_blank" rel="noopener noreferrer" className="about-social-icon-item" aria-label="Instagram">
+                    <FaInstagram />
+                  </a>
+                  <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" className="about-social-icon-item" aria-label="Behance">
+                    <FaBehance />
+                  </a>
+                  <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" className="about-social-icon-item" aria-label="LinkedIn">
+                    <FaLinkedin />
+                  </a>
+                  <a href="mailto:jeevanantham2002nkl@gmail.com" className="about-social-email-item">
+                    <FiMail />
+                    <span>jeevanantham2002nkl@gmail.com</span>
+                  </a>
+                </div>
               </div>
 
-              <div className="about-left-socials-row">
-                <a href="https://www.instagram.com/jeeva.log/" target="_blank" rel="noopener noreferrer" className="about-social-icon-item" aria-label="Instagram">
-                  <FaInstagram />
-                </a>
-                <a href="https://www.behance.net/jeevananthamj" target="_blank" rel="noopener noreferrer" className="about-social-icon-item" aria-label="Behance">
-                  <FaBehance />
-                </a>
-                <a href="https://www.linkedin.com/in/jeeva-j1426" target="_blank" rel="noopener noreferrer" className="about-social-icon-item" aria-label="LinkedIn">
-                  <FaLinkedin />
-                </a>
-                <a href="mailto:jeevanantham2002nkl@gmail.com" className="about-social-email-item">
-                  <FiMail />
-                  <span>jeevanantham2002nkl@gmail.com</span>
-                </a>
+              {/* Connected Right Cell: Clean Editorial Story + Bento Stats */}
+              <div className="about-grid-cell about-cell-right">
+                <span className="cell-corner-crosshair top-right">+</span>
+                {/* Header Badge & Title */}
+                <div className="about-editorial-header">
+                  <div className="about-status-badge">
+                    <span className="status-ping-dot"></span>
+                    <span>UI/UX &amp; PRODUCT DESIGNER</span>
+                  </div>
+                  <h3 className="about-hero-heading">
+                    Hi, I'm <span className="text-highlight-cyan">Jeevanantham Jayaraj</span>
+                  </h3>
+                  <p className="about-role-headline">
+                    Crafting <span className="text-highlight-purple">scalable design systems</span> &amp; enterprise SaaS products with precision.
+                  </p>
+                </div>
+
+                {/* Bio Narrative */}
+                <p className="about-narrative-text">
+                  Specialized in architecting high-impact SaaS platforms and fluid user journeys. Currently a <strong>Deloitte Contractor</strong> at <strong>The Cloud Company</strong>, transforming complex business logic into intuitive, visually refined products.
+                </p>
+
+                {/* Bento Metric Cards Grid */}
+                <div className="about-bento-metrics">
+                  <div className="bento-metric-card">
+                    <div className="metric-card-top">
+                      <span className="bento-stat-number">+18</span>
+                      <span className="metric-badge-tag">Delivered</span>
+                    </div>
+                    <span className="bento-stat-label">Projects Completed</span>
+                    <span className="bento-stat-sub">SaaS &amp; Mobile</span>
+                  </div>
+
+                  <div className="bento-metric-card">
+                    <div className="metric-card-top">
+                      <span className="bento-stat-number">3+</span>
+                      <span className="metric-badge-tag">Years</span>
+                    </div>
+                    <span className="bento-stat-label">Experience</span>
+                    <span className="bento-stat-sub">Enterprise UX</span>
+                  </div>
+
+                  <div className="bento-metric-card">
+                    <div className="metric-card-top">
+                      <span className="bento-stat-number">+200</span>
+                      <span className="metric-badge-tag">Reusable</span>
+                    </div>
+                    <span className="bento-stat-label">Components Built</span>
+                    <span className="bento-stat-sub">Design Systems</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Right Column: Title, Subtitle, Tech Categorized List, Big Stats */}
-            <div className="about-modern-right">
-              <h1 className="about-title-name">Hi, I'm Jeevanantham Jayaraj</h1>
-              <p className="about-subtitle-role">
-                UI/UX &amp; Visual Designer based in Namakkal, India. Deloitte Contractor at The Cloud Company.
-              </p>
-
-              <div className="about-modern-stats">
-                <div className="modern-stat-item">
-                  <span className="modern-stat-num">+18</span>
-                  <span className="modern-stat-lbl">Projects Completed</span>
-                </div>
-                <div className="modern-stat-item">
-                  <span className="modern-stat-num">3+</span>
-                  <span className="modern-stat-lbl">Years Experience</span>
-                </div>
-                <div className="modern-stat-item">
-                  <span className="modern-stat-num">+200</span>
-                  <span className="modern-stat-lbl">Components Built</span>
-                </div>
+            {/* Connected Bottom Cell: Full-Width Design Tool Stack */}
+            <div className="about-grid-cell about-cell-bottom">
+              <span className="cell-corner-crosshair bottom-left">+</span>
+              <span className="cell-corner-crosshair bottom-right">+</span>
+              <div className="toolstrip-label-col">
+                <span className="toolstrip-badge">DESIGN ARSENAL</span>
+                <span className="toolstrip-caption">Core Production Stack</span>
               </div>
-
-              <div className="about-tools-bar">
-                <span className="tools-bar-label">Design Stack</span>
-                <div className="tools-icons-row">
-                  <div className="tool-icon-chip" title="Figma">
-                    <TbBrandFigma className="tool-package-icon figma" />
-                    <span>Figma</span>
-                  </div>
-                  <div className="tool-icon-chip" title="Photoshop">
-                    <TbBrandAdobePhotoshop className="tool-package-icon ps" />
-                    <span>Photoshop</span>
-                  </div>
-                  <div className="tool-icon-chip" title="Illustrator">
-                    <TbBrandAdobeIllustrator className="tool-package-icon ai" />
-                    <span>Illustrator</span>
-                  </div>
-                  <div className="tool-icon-chip" title="Premiere Pro">
-                    <TbBrandAdobePremiere className="tool-package-icon pr" />
-                    <span>Premiere Pro</span>
-                  </div>
-                  <div className="tool-icon-chip" title="Adobe XD">
-                    <TbBrandAdobeXd className="tool-package-icon xd" />
-                    <span>Adobe XD</span>
-                  </div>
-                  <div className="tool-icon-chip" title="InDesign">
-                    <TbBrandAdobeIndesign className="tool-package-icon id" />
-                    <span>InDesign</span>
-                  </div>
+              <div className="toolstrip-badges-row">
+                <div className="tool-capsule" title="Figma">
+                  <TbBrandFigma className="tool-package-icon figma" />
+                  <span>Figma</span>
+                </div>
+                <div className="tool-capsule" title="Photoshop">
+                  <TbBrandAdobePhotoshop className="tool-package-icon ps" />
+                  <span>Photoshop</span>
+                </div>
+                <div className="tool-capsule" title="Illustrator">
+                  <TbBrandAdobeIllustrator className="tool-package-icon ai" />
+                  <span>Illustrator</span>
+                </div>
+                <div className="tool-capsule" title="Premiere Pro">
+                  <TbBrandAdobePremiere className="tool-package-icon pr" />
+                  <span>Premiere Pro</span>
+                </div>
+                <div className="tool-capsule" title="Adobe XD">
+                  <TbBrandAdobeXd className="tool-package-icon xd" />
+                  <span>Adobe XD</span>
+                </div>
+                <div className="tool-capsule" title="InDesign">
+                  <TbBrandAdobeIndesign className="tool-package-icon id" />
+                  <span>InDesign</span>
                 </div>
               </div>
             </div>
@@ -1228,88 +1616,72 @@ function App() {
 
           <div className="projects-container-brotype">
 
-            {/* Project 1: Deloitte Dashboard */}
-            <div className="brotype-project-card card-deloitte">
+            {/* Project 1: HelpFlow AI */}
+            <div className="brotype-project-card card-helpflow" onClick={() => setSelectedCaseStudy(caseStudyData.helpflow)}>
               <div className="project-card-left">
-                <h3 className="project-card-title">Deloitte</h3>
-                <p className="project-card-desc">A unified analytics dashboard that aggregates telemetry, workload allocation, and real-time alerts. Re-architected user flows to reduce task-completion time by 40% and improve developer handoff accuracy.</p>
+                <h3 className="project-card-title">HelpFlow AI</h3>
+                <p className="project-card-desc">A responsive SaaS website for an AI-powered customer support platform. HelpFlow helps teams manage support tickets, automate repetitive replies, prioritize urgent issues, and respond faster.</p>
                 <div className="project-card-meta">
+                  <div className="meta-col">Responsive SaaS</div>
+                  <div className="meta-col">AI Support</div>
                   <div className="meta-col">Figma</div>
-                  <div className="meta-col">Design Tokens</div>
-                  <div className="meta-col">Enterprise SaaS</div>
-                  <div className="meta-col">Usability Testing</div>
+                  <div className="meta-col">UX Strategy</div>
                 </div>
-                <div className="project-arrow-btn">
+                <button
+                  className="project-arrow-btn"
+                  onClick={(e) => { e.stopPropagation(); setSelectedCaseStudy(caseStudyData.helpflow); }}
+                  aria-label="View HelpFlow AI Case Study Details"
+                  title="View HelpFlow AI Case Study Details"
+                >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="7" y1="17" x2="17" y2="7"></line>
                     <polyline points="7 7 17 7 17 17"></polyline>
                   </svg>
-                </div>
+                </button>
               </div>
-              <div className="project-card-right">
-                <div className="mockup-ui">
-                  <div className="mockup-header">
-                    <span className="dot red"></span><span className="dot yellow"></span><span className="dot green"></span>
-                    <div className="mockup-search">deloitte.saas.dashboard</div>
-                  </div>
-                  <div className="mockup-body">
-                    <div className="sidebar-mock"></div>
-                    <div className="content-mock">
-                      <div className="card-row">
-                        <div className="card-mock"></div>
-                        <div className="card-mock"></div>
-                        <div className="card-mock"></div>
-                      </div>
-                      <div className="chart-mock"></div>
-                    </div>
-                  </div>
-                </div>
+              <div className="project-card-right project-card-image-wrap">
+                <img
+                  src={helpflowCaseStudyImg}
+                  alt="HelpFlow AI Responsive SaaS Platform"
+                  className="project-real-thumbnail"
+                />
               </div>
             </div>
 
-            {/* Project 2: Apex Neobank */}
-            <div className="brotype-project-card card-neobank">
+            {/* Project 2: InsightAI */}
+            <div className="brotype-project-card card-insightai" onClick={() => setSelectedCaseStudy(caseStudyData.insightai)}>
               <div className="project-card-left">
-                <h3 className="project-card-title">Apex Neobank</h3>
-                <p className="project-card-desc">Complete end-to-end design system, mobile UI/UX, and visual brand identity for a modern consumer neobanking service.</p>
+                <h3 className="project-card-title">InsightAI</h3>
+                <p className="project-card-desc">Conversational AI for business data. InsightAI helps users explore sales and brand data by asking questions in natural language, delivering structured, data-backed answers.</p>
                 <div className="project-card-meta">
+                  <div className="meta-col">Conversational AI</div>
+                  <div className="meta-col">Data Analytics</div>
                   <div className="meta-col">Figma</div>
-                  <div className="meta-col">Illustrator</div>
-                  <div className="meta-col">Mobile UI</div>
+                  <div className="meta-col">Enterprise UX</div>
                 </div>
-                <div className="project-arrow-btn">
+                <button
+                  className="project-arrow-btn"
+                  onClick={(e) => { e.stopPropagation(); setSelectedCaseStudy(caseStudyData.insightai); }}
+                  aria-label="View InsightAI Case Study Details"
+                  title="View InsightAI Case Study Details"
+                >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="7" y1="17" x2="17" y2="7"></line>
                     <polyline points="7 7 17 7 17 17"></polyline>
                   </svg>
-                </div>
+                </button>
               </div>
-              <div className="project-card-right">
-                <div className="mockup-phone-wrapper">
-                  <div className="mockup-phone">
-                    <div className="phone-screen">
-                      <div className="phone-header">
-                        <span className="phone-logo">APEX</span>
-                        <span className="phone-battery">94%</span>
-                      </div>
-                      <div className="phone-balance-card">
-                        <span className="balance-label">Balance</span>
-                        <span className="balance-amount">$5,234.00</span>
-                      </div>
-                      <div className="phone-actions-row">
-                        <span className="phone-action-btn">Send</span>
-                        <span className="phone-action-btn">Request</span>
-                        <span className="phone-action-btn">Top Up</span>
-                      </div>
-                      <div className="phone-chart-area"></div>
-                    </div>
-                  </div>
-                </div>
+              <div className="project-card-right project-card-image-wrap">
+                <img
+                  src={insightaiCaseStudyImg}
+                  alt="InsightAI Conversational Business Data Platform"
+                  className="project-real-thumbnail"
+                />
               </div>
             </div>
 
             {/* Project 3: AeroSpace AI Copilot */}
-            <div className="brotype-project-card card-aerospace">
+            <div className="brotype-project-card card-aerospace" onClick={() => setSelectedCaseStudy(caseStudyData.aerospace)}>
               <div className="project-card-left">
                 <h3 className="project-card-title">AeroSpace AI</h3>
                 <p className="project-card-desc">Interactive conversational assistant for technicians to retrieve manuals and telemetry data using Natural Language processing.</p>
@@ -1318,12 +1690,17 @@ function App() {
                   <div className="meta-col">Micro-interactions</div>
                   <div className="meta-col">AI Interfaces</div>
                 </div>
-                <div className="project-arrow-btn">
+                <button
+                  className="project-arrow-btn"
+                  onClick={(e) => { e.stopPropagation(); setSelectedCaseStudy(caseStudyData.aerospace); }}
+                  aria-label="View AeroSpace AI Case Study Details"
+                  title="View AeroSpace AI Case Study Details"
+                >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="7" y1="17" x2="17" y2="7"></line>
                     <polyline points="7 7 17 7 17 17"></polyline>
                   </svg>
-                </div>
+                </button>
               </div>
               <div className="project-card-right">
                 <div className="mockup-phone-wrapper">
@@ -1344,7 +1721,7 @@ function App() {
             </div>
 
             {/* Project 4: OmniSystem Library */}
-            <div className="brotype-project-card card-omnisystem">
+            <div className="brotype-project-card card-omnisystem" onClick={() => setSelectedCaseStudy(caseStudyData.omnisystem)}>
               <div className="project-card-left">
                 <h3 className="project-card-title">OmniSystem</h3>
                 <p className="project-card-desc">Scaling multi-brand enterprise platforms with a unified design system of over 200+ reusable Figma components and token architectures.</p>
@@ -1353,12 +1730,17 @@ function App() {
                   <div className="meta-col">Tokens Studio</div>
                   <div className="meta-col">React Handoff</div>
                 </div>
-                <div className="project-arrow-btn">
+                <button
+                  className="project-arrow-btn"
+                  onClick={(e) => { e.stopPropagation(); setSelectedCaseStudy(caseStudyData.omnisystem); }}
+                  aria-label="View OmniSystem Case Study Details"
+                  title="View OmniSystem Case Study Details"
+                >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="7" y1="17" x2="17" y2="7"></line>
                     <polyline points="7 7 17 7 17 17"></polyline>
                   </svg>
-                </div>
+                </button>
               </div>
               <div className="project-card-right">
                 <div className="mockup-ui tokens-mockup">
@@ -1374,7 +1756,7 @@ function App() {
             </div>
 
             {/* Project 5: HealthTech Patient Portal */}
-            <div className="brotype-project-card card-healthtech">
+            <div className="brotype-project-card card-healthtech" onClick={() => setSelectedCaseStudy(caseStudyData.healthtech)}>
               <div className="project-card-left">
                 <h3 className="project-card-title">HealthTech</h3>
                 <p className="project-card-desc">A responsive health tracking portal designed with an emphasis on WCAG 2.1 accessibility standards and patient data privacy.</p>
@@ -1383,12 +1765,17 @@ function App() {
                   <div className="meta-col">WCAG 2.1</div>
                   <div className="meta-col">Responsive Design</div>
                 </div>
-                <div className="project-arrow-btn">
+                <button
+                  className="project-arrow-btn"
+                  onClick={(e) => { e.stopPropagation(); setSelectedCaseStudy(caseStudyData.healthtech); }}
+                  aria-label="View HealthTech Case Study Details"
+                  title="View HealthTech Case Study Details"
+                >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="7" y1="17" x2="17" y2="7"></line>
                     <polyline points="7 7 17 7 17 17"></polyline>
                   </svg>
-                </div>
+                </button>
               </div>
               <div className="project-card-right">
                 <div className="mockup-ui">
@@ -1410,49 +1797,64 @@ function App() {
           </div>
         </section>
 
-        {/* 5️⃣ Interactive Skills Section */}
-        <div className="skills-scroll-wrapper" ref={skillsWrapperRef}>
-          <section className="skills-section-brotype" id="skills">
-            <div className="recent-works-header-container">
-              <span className="recent-works-circle circle-left">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="16 18 22 12 16 6"></polyline>
-                  <polyline points="8 6 2 12 8 18"></polyline>
-                </svg>
-              </span>
-              <h2 className="recent-works-title">EXPERTISE</h2>
-              <span className="recent-works-circle circle-right">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="9" y1="3" x2="9" y2="21"></line>
-                  <line x1="15" y1="3" x2="15" y2="21"></line>
-                  <line x1="3" y1="9" x2="21" y2="9"></line>
-                  <line x1="3" y1="15" x2="21" y2="15"></line>
-                </svg>
-              </span>
-            </div>
+        {/* 5️⃣ Expertise Section */}
+        <section className="expertise-section-brotype" id="skills">
+          <div className="recent-works-header-container">
+            <span className="recent-works-circle circle-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+            </span>
+            <h2 className="recent-works-title">EXPERTISE</h2>
+            <span className="recent-works-circle circle-right">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="9" y1="3" x2="9" y2="21"></line>
+                <line x1="15" y1="3" x2="15" y2="21"></line>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="3" y1="15" x2="21" y2="15"></line>
+              </svg>
+            </span>
+          </div>
 
-            <div className="skills-grid-container">
-              {skillsList.map((skill, index) => (
-                <DraggableSkillCard key={index} skill={skill} />
+          <div className="expertise-capsules-wrapper">
+            <div className="expertise-capsules-grid">
+              {expertiseBadges.map((badge) => (
+                <div 
+                  key={badge.id} 
+                  className="expertise-visual-capsule"
+                  style={{
+                    '--badge-accent': badge.accent,
+                    '--badge-glow': badge.glow
+                  }}
+                >
+                  <div className="capsule-icon-orb">
+                    {badge.icon}
+                  </div>
+                  <div className="capsule-content">
+                    <h3 className="capsule-heading">{badge.title}</h3>
+                    <span className="capsule-subtitle">{badge.subtitle}</span>
+                  </div>
+                </div>
               ))}
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
 
         {/* 6️⃣ Beyond Design / Personal Explorations Section */}
         <section className="offscreen-section" id="stories">
           <div className="recent-works-header-container">
-            <span className="recent-works-circle circle-left">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <span className="recent-works-circle circle-left" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#000000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                 <circle cx="12" cy="13" r="4"></circle>
               </svg>
             </span>
             <h2 className="recent-works-title">BEYOND DESIGN</h2>
-            <span className="recent-works-circle circle-right">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            <span className="recent-works-circle circle-right" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="#000000" stroke="#000000" strokeWidth="0.5">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
               </svg>
             </span>
           </div>
@@ -1601,6 +2003,12 @@ function App() {
 
       {/* Figma Draggable Floating Chip */}
       <div className="figma-drag-chip" id="figma-chip">Don't move me! 🛑</div>
+
+      {/* Case Study Details Modal */}
+      <CaseStudyModal
+        caseStudy={selectedCaseStudy}
+        onClose={() => setSelectedCaseStudy(null)}
+      />
     </>
   );
 }
