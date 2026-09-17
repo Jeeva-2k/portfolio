@@ -15,12 +15,16 @@ import {
 import './App.css';
 import idCardImg from './assets/id-card.png';
 import heroProfileImg from './assets/hero-profile.png';
-import beyondTravelImg from './assets/beyond-travel.png';
-import beyondStreetImg from './assets/beyond-street.png';
-import beyondWorkspaceImg from './assets/beyond-workspace.png';
-import beyondArtImg from './assets/beyond-art.png';
+import beyondZoroImg from './assets/beyond-zoro.jpg';
+import beyondLuffyImg from './assets/beyond-luffy.jpg';
+import beyondMisaImg from './assets/beyond-misa.jpg';
+import beyondNarutoImg from './assets/beyond-naruto-hinata.jpg';
+import beyondSunflowerImg from './assets/beyond-summer-sunflower.jpg';
 import helpflowCaseStudyImg from './assets/helpflow-case-study.png';
 import insightaiCaseStudyImg from './assets/insightai-case-study.png';
+import engineCommandCenterImg from './assets/engine-command-center.png';
+import bitpulseCryptoImg from './assets/bitpulse-crypto.png';
+import neuralhubCaseStudyImg from './assets/neuralhub-case-study.png';
 
 // Paste your Google Apps Script Web App URL below to log every visit directly to a Google Sheet (Excel-compatible)
 const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz7SPLYZVRHRvK_KZwz9HrgCxGrx1jVzVd6DRzEuiqeJzygNsoeeN5XfqVfDUfD7tnCBQ/exec";
@@ -316,24 +320,34 @@ function ParallaxCardsCarousel() {
 
   const rawCarouselData = [
     {
-      id: 'travel',
-      title: 'Exploration',
-      image: beyondTravelImg,
+      id: 'graphic-design',
+      title: 'Graphic Design',
+      subtitle: 'Visual & Poster Art',
+      image: beyondZoroImg,
     },
     {
-      id: 'street',
-      title: 'Photography',
-      image: beyondStreetImg,
+      id: 'sketching',
+      title: 'Digital Sketching',
+      subtitle: 'Linework & Form',
+      image: beyondLuffyImg,
     },
     {
-      id: 'workspace',
-      title: 'Deep Work',
-      image: beyondWorkspaceImg,
+      id: 'character-design',
+      title: 'Character Design',
+      subtitle: 'Stylized & Chibi Art',
+      image: beyondMisaImg,
     },
     {
-      id: 'art',
-      title: 'Creative Lab',
-      image: beyondArtImg,
+      id: 'digital-painting',
+      title: 'Digital Painting',
+      subtitle: 'Lighting & Shading',
+      image: beyondNarutoImg,
+    },
+    {
+      id: 'illustration',
+      title: 'Illustration',
+      subtitle: 'Concept & Anime Art',
+      image: beyondSunflowerImg,
     },
   ];
 
@@ -410,6 +424,7 @@ function ParallaxCardsCarousel() {
             </div>
 
             <div className="parallax-card-content">
+              {item.subtitle && <span className="parallax-card-tag">{item.subtitle}</span>}
               <h3 className="parallax-card-title">{item.title}</h3>
             </div>
           </div>
@@ -472,50 +487,37 @@ const renderProjectPreview = (id) => {
           />
         </div>
       );
+    case 'engine':
     case 'aerospace':
       return (
-        <div className="modal-preview-phone-stage">
-          <div className="mockup-phone dark-theme">
-            <div className="phone-screen">
-              <div className="phone-header">
-                <span className="phone-logo">AeroAI</span>
-                <span className="phone-status">Online</span>
-              </div>
-              <div className="chat-bubble bot">Turbine telemetry online. System ready.</div>
-              <div className="chat-bubble user">Status on Fan Blade 4?</div>
-              <div className="chat-bubble bot highlighted">All sensors normal. Rotation speed: 2,400 RPM. Temp: 85°C.</div>
-              <div className="chat-input-mock">Query technical telemetry...</div>
-            </div>
-          </div>
+        <div className="modal-preview-real-image-container">
+          <img
+            src={engineCommandCenterImg}
+            alt="Engine Command Center Supply Chain & Predictive Forecasting"
+            className="modal-preview-real-image"
+          />
         </div>
       );
+    case 'bitpulse':
     case 'omnisystem':
       return (
-        <div className="modal-preview-tokens-stage">
-          <div className="tokens-grid">
-            <div className="token-card-ui"><span className="color-preview blue"></span><code>--color-primary: #3b82f6</code></div>
-            <div className="token-card-ui"><span className="color-preview teal"></span><code>--color-success: #1abc9c</code></div>
-            <div className="token-card-ui"><span className="color-preview yellow"></span><code>--color-warning: #eab308</code></div>
-            <div className="token-card-ui"><span className="color-preview purple"></span><code>--color-accent: #8b5cf6</code></div>
-            <div className="token-card-ui"><code>--radius-md: 12px</code></div>
-            <div className="token-card-ui"><code>--spacing-lg: 24px</code></div>
-          </div>
+        <div className="modal-preview-real-image-container">
+          <img
+            src={bitpulseCryptoImg}
+            alt="BitPulse Real-Time Crypto Multiplier & Trading Platform"
+            className="modal-preview-real-image"
+          />
         </div>
       );
+    case 'neuralhub':
     case 'healthtech':
       return (
-        <div className="modal-preview-browser">
-          <div className="modal-preview-header">
-            <span className="dot red"></span><span className="dot yellow"></span><span className="dot green"></span>
-            <span className="modal-preview-url">healthtech.internal/patient/vitals-monitor</span>
-          </div>
-          <div className="health-content-grid modal-health-grid">
-            <div className="health-sidebar-mock"></div>
-            <div className="health-body-mock">
-              <div className="health-stat-pill">Resting Heart Rate: 68 BPM • Normal</div>
-              <div className="health-chart-mock"></div>
-            </div>
-          </div>
+        <div className="modal-preview-real-image-container">
+          <img
+            src={neuralhubCaseStudyImg}
+            alt="NeuralHub AI Agent Evaluation & LLM Testing Platform"
+            className="modal-preview-real-image"
+          />
         </div>
       );
     default:
@@ -614,65 +616,143 @@ const caseStudyData = {
     ],
     tools: ['Figma', 'Conversational AI UX', 'Enterprise BI', 'Data Visualization', 'Design Systems']
   },
-  aerospace: {
-    id: 'aerospace',
-    category: 'Industrial AI Assistant',
-    title: 'AeroSpace AI Copilot',
-    tagline: 'Conversational AI interface allowing field technicians to query maintenance manuals and live sensor telemetry hands-free.',
-    overview: 'An intelligent operational assistant designed for aerospace technicians working on aircraft engines and hangar machinery. Translates complex telemetry queries into concise natural-language answers and schematic overlays.',
-    problem: 'Technicians handling heavy machinery could not easily search through thousands of pages of PDF maintenance manuals while diagnosing engine turbines.',
-    solution: 'Developed an accessible high-contrast dark AI interface with rapid voice queries, step-by-step repair checklists, and instant schematic visualizers.',
+  engine: {
+    id: 'engine',
+    category: 'Enterprise Supply Chain & Analytics',
+    title: 'Engine Command Center',
+    tagline: 'Predictive supply chain forecasting, inventory scenario modeling, and part anomaly detection.',
+    overview: 'An enterprise operational command center built for global equipment manufacturers. Unifies multi-tier distributor hierarchies, rolling 8/12/20-week forecast accuracy gauges, inventory scenario comparisons, and automated part number conflict resolution.',
+    problem: 'Supply chain planners and distributor networks navigated fragmented spreadsheets, conflicting manufacturer part numbers (MPNs), and delayed sales reports, resulting in high forecast variance, misaligned safety stocks, and stockout risks.',
+    solution: 'Structured around Ingest → Diagnose → Simulate → Reconcile. Unified equipment and distributor hierarchies into an intelligent command center with real-time radial accuracy gauges, dynamic control limits, side-by-side DoD scenario models, and automated part conflict triage.',
+    funnelSteps: ['Ingest', 'Diagnose', 'Simulate', 'Reconcile'],
     features: [
-      { title: 'Natural Language Diagnostics', desc: 'Query turbine sensor telemetry using conversational phrasing.' },
-      { title: 'High-Contrast Dark Theme', desc: 'Optimized for low-light hangars and field operations.' },
-      { title: 'Offline Resilience', desc: 'Gracefully caches diagrams and checklists for zero-connectivity zones.' }
+      { title: 'Rolling Accuracy Gauges', desc: 'Benchmarked L8W, L12W, and L20W forecast performance (70.1% baseline) with upper and lower control limit tracking.' },
+      { title: 'Dual-Axis Hierarchical Filtering', desc: 'Enabled instant cross-filtering across Sales Org, EU, Category, Brand, Product Family, and Distribution Center levels.' },
+      { title: 'Scenario Comparison & DoD Variance', desc: 'Engineered side-by-side inventory simulation tables with DoD % deltas and brand-level variance waterfall charts.' },
+      { title: 'Part Number Conflict Workbench', desc: 'Built dedicated Input Health triage views to isolate missing distributor MPNs and reconcile catalog discrepancies.' },
+      { title: 'Executive KPI Strip & Alerting', desc: 'Integrated quick-glance status on Service & Availability, Falling Unit Costs, and POS vs. Shipment trends.' }
     ],
     metrics: [
-      { num: '65%', label: 'Faster Search', sub: 'Manual lookup time' },
-      { num: '100%', label: 'Safety Guardrails', sub: 'Double confirmation' },
-      { num: '0', label: 'False Actions', sub: 'Verified AI outputs' }
+      { num: '70.1%', label: 'Forecast Accuracy', sub: 'L8W / L12W / L20W tracked' },
+      { num: '4-Level', label: 'Drill-Down Depth', sub: 'Sales Org → MPN specs' },
+      { num: '-45%', label: 'Conflict Triage', sub: 'Faster mismatch resolution' }
     ],
-    tools: ['Figma', 'AI Interfaces', 'Micro-Interactions', 'Industrial UX', 'Prototyping']
+    tools: ['Figma', 'Enterprise SaaS', 'Supply Chain UX', 'Data Visualization', 'Design Systems']
+  },
+  bitpulse: {
+    id: 'bitpulse',
+    category: 'Fintech & High-Frequency Trading',
+    title: 'BitPulse',
+    tagline: 'Real-time mobile crypto multiplier platform with dynamic spatial price grids and tactile execution.',
+    overview: 'A high-frequency mobile trading and price prediction application engineered for volatile crypto markets. Allows users to place spatial multiplier wagers directly along real-time BTC price curves with forward-looking time horizons, immediate profit feedback, and a dual dark/light design system.',
+    problem: 'Traditional crypto derivatives platforms present intimidating order books, complex depth charts, and sluggish input modals that cause friction during rapid price volatility, causing cognitive overload and missed entry windows for retail traders.',
+    solution: 'Structured around Observe → Project → Stake → Settle. Revolutionized trade execution by overlaying dynamic payout multiplier ladders directly onto live price trajectories, providing one-thumb spatial betting, immediate balance settlement, and high-contrast accessibility across both dark and light modes.',
+    funnelSteps: ['Observe', 'Project', 'Stake', 'Settle'],
+    features: [
+      { title: 'Spatial Multiplier Price Grid', desc: 'Overlaid dynamic multiplier badges (x1.04 to x4.13) directly onto live BTC price coordinates for intuitive, one-tap staking.' },
+      { title: 'Predictive Forward-Time Horizon', desc: 'Mapped a segmented timeline separating historical trend ticks (-15s to 0s) from forward expiration windows (+5s to +20s).' },
+      { title: 'Dual AMOLED Dark & Light Design System', desc: 'Engineered high-contrast neon green on AMOLED black for night sessions and high-key crisp white for bright daylight usage.' },
+      { title: 'One-Thumb Tactile Stake Controller', desc: 'Anchored persistent wallet balances, quick stake amounts ($1.00 chips), and instant cash-out status within the ergonomic thumb zone.' },
+      { title: 'Microsecond State Transitions', desc: 'Animated live stake chips from active tracking to in-the-money victory state (+1.04 profit alerts) with zero visual stutter.' }
+    ],
+    metrics: [
+      { num: '0.2s', label: 'Execution Speed', sub: 'One-tap direct staking' },
+      { num: '2 Modes', label: 'Dual Theme', sub: 'AMOLED Dark & Crisp Light' },
+      { num: '+38%', label: 'User Retention', sub: 'Direct spatial trading UX' }
+    ],
+    tools: ['Figma', 'Mobile App UX', 'Fintech / Web3', 'Micro-Interactions', 'Design System']
+  },
+  neuralhub: {
+    id: 'neuralhub',
+    category: 'AI Agent Ops & LLM Evaluation',
+    title: 'NeuralHub',
+    tagline: 'Enterprise platform for orchestrating autonomous AI agents, evaluating LLM benchmarks, and auditing token telemetry.',
+    overview: 'A comprehensive enterprise test bench and observability platform built for AI engineering teams. Unifies automated test suites across NLP, Computer Vision, and Speech agents with interactive prompt debug benches, model drift detection, prompt injection defense, and granular token spend telemetry.',
+    problem: 'Engineering teams deploying LLMs and multi-agent workflows faced critical blind spots: undetected model drift, prompt injection vulnerabilities, opaque failure states in restricted repositories, and runaway API bills without per-agent cost attribution.',
+    solution: 'Structured around Organize → Execute → Evaluate → Govern. Crafted a unified workbench allowing teams to configure multi-agent test harnesses, debug prompt interactions in a live sandbox with instant error feedback, track token burn down to the cent, and onboard engineers through integrated video guides.',
+    funnelSteps: ['Organize', 'Execute', 'Evaluate', 'Govern'],
+    features: [
+      { title: 'Multi-Modal Test Suite Registry', desc: 'Designed structured suite management for Computer Vision, NLP, and Speech with dedicated agent cards (Bias Detection, Drift, Latency).' },
+      { title: 'Interactive Agent Execution Lab', desc: 'Created an intelligent prompt testing environment with role selectors (ML Engineer), model toggles (GPT-4o), and instant error triage.' },
+      { title: 'FinOps & Token Telemetry Dashboard', desc: 'Visualized total cost ($245.65), avg chat spend ($0.12), model price rankings, and cost-over-time trend lines.' },
+      { title: 'Automated Vulnerability & Drift Harness', desc: 'Integrated automated regression tests, prompt injection simulations, and real-time failure log inspectors with one-click retries.' },
+      { title: 'Integrated Learning & Video Knowledge Base', desc: 'Embedded curated video walkthroughs and interactive capability FAQs directly into the workspace to streamline team onboarding.' }
+    ],
+    metrics: [
+      { num: '5+', label: 'Automated Audits', sub: 'Drift, Bias & Injections' },
+      { num: '$0.12', label: 'Avg Chat Cost', sub: 'Tracked per invocation' },
+      { num: '100%', label: 'Traceability', sub: 'Full telemetry & log audits' }
+    ],
+    tools: ['Figma', 'AI / LLM UX', 'Enterprise SaaS', 'FinOps Telemetry', 'Design System']
+  },
+  aerospace: {
+    id: 'engine',
+    category: 'Enterprise Supply Chain & Analytics',
+    title: 'Engine Command Center',
+    tagline: 'Predictive supply chain forecasting, inventory scenario modeling, and part anomaly detection.',
+    overview: 'An enterprise operational command center built for global equipment manufacturers. Unifies multi-tier distributor hierarchies, rolling 8/12/20-week forecast accuracy gauges, inventory scenario comparisons, and automated part number conflict resolution.',
+    problem: 'Supply chain planners and distributor networks navigated fragmented spreadsheets, conflicting manufacturer part numbers (MPNs), and delayed sales reports, resulting in high forecast variance, misaligned safety stocks, and stockout risks.',
+    solution: 'Structured around Ingest → Diagnose → Simulate → Reconcile. Unified equipment and distributor hierarchies into an intelligent command center with real-time radial accuracy gauges, dynamic control limits, side-by-side DoD scenario models, and automated part conflict triage.',
+    funnelSteps: ['Ingest', 'Diagnose', 'Simulate', 'Reconcile'],
+    features: [
+      { title: 'Rolling Accuracy Gauges', desc: 'Benchmarked L8W, L12W, and L20W forecast performance (70.1% baseline) with upper and lower control limit tracking.' },
+      { title: 'Dual-Axis Hierarchical Filtering', desc: 'Enabled instant cross-filtering across Sales Org, EU, Category, Brand, Product Family, and Distribution Center levels.' },
+      { title: 'Scenario Comparison & DoD Variance', desc: 'Engineered side-by-side inventory simulation tables with DoD % deltas and brand-level variance waterfall charts.' },
+      { title: 'Part Number Conflict Workbench', desc: 'Built dedicated Input Health triage views to isolate missing distributor MPNs and reconcile catalog discrepancies.' },
+      { title: 'Executive KPI Strip & Alerting', desc: 'Integrated quick-glance status on Service & Availability, Falling Unit Costs, and POS vs. Shipment trends.' }
+    ],
+    metrics: [
+      { num: '70.1%', label: 'Forecast Accuracy', sub: 'L8W / L12W / L20W tracked' },
+      { num: '4-Level', label: 'Drill-Down Depth', sub: 'Sales Org → MPN specs' },
+      { num: '-45%', label: 'Conflict Triage', sub: 'Faster mismatch resolution' }
+    ],
+    tools: ['Figma', 'Enterprise SaaS', 'Supply Chain UX', 'Data Visualization', 'Design Systems']
   },
   omnisystem: {
-    id: 'omnisystem',
-    category: 'Design Systems Architecture',
-    title: 'OmniSystem Multi-Brand Library',
-    tagline: 'Scalable design token architecture and 200+ reusable Figma components for enterprise web and mobile products.',
-    overview: 'A unified multi-brand design system built to bridge product design and frontend development across multiple digital platforms with automated token pipelines.',
-    problem: 'Product teams suffered from duplicate component libraries, inconsistent brand colors, and fragmented styling across four distinct digital apps.',
-    solution: 'Architected a 3-tier token structure (Global, Semantic, Component) in Tokens Studio with automated Style Dictionary export for React codebases.',
+    id: 'bitpulse',
+    category: 'Fintech & High-Frequency Trading',
+    title: 'BitPulse',
+    tagline: 'Real-time mobile crypto multiplier platform with dynamic spatial price grids and tactile execution.',
+    overview: 'A high-frequency mobile trading and price prediction application engineered for volatile crypto markets. Allows users to place spatial multiplier wagers directly along real-time BTC price curves with forward-looking time horizons, immediate profit feedback, and a dual dark/light design system.',
+    problem: 'Traditional crypto derivatives platforms present intimidating order books, complex depth charts, and sluggish input modals that cause friction during rapid price volatility, causing cognitive overload and missed entry windows for retail traders.',
+    solution: 'Structured around Observe → Project → Stake → Settle. Revolutionized trade execution by overlaying dynamic payout multiplier ladders directly onto live price trajectories, providing one-thumb spatial betting, immediate balance settlement, and high-contrast accessibility across both dark and light modes.',
+    funnelSteps: ['Observe', 'Project', 'Stake', 'Settle'],
     features: [
-      { title: '3-Tier Token Hierarchy', desc: 'Clean separation of brand colors, semantic roles, and component styles.' },
-      { title: '200+ Auto-Layout Components', desc: 'Fully responsive Figma components with dark & light theme variants.' },
-      { title: 'Direct React Token Sync', desc: 'Automated JSON export transforming tokens directly into CSS variables.' }
+      { title: 'Spatial Multiplier Price Grid', desc: 'Overlaid dynamic multiplier badges (x1.04 to x4.13) directly onto live BTC price coordinates for intuitive, one-tap staking.' },
+      { title: 'Predictive Forward-Time Horizon', desc: 'Mapped a segmented timeline separating historical trend ticks (-15s to 0s) from forward expiration windows (+5s to +20s).' },
+      { title: 'Dual AMOLED Dark & Light Design System', desc: 'Engineered high-contrast neon green on AMOLED black for night sessions and high-key crisp white for bright daylight usage.' },
+      { title: 'One-Thumb Tactile Stake Controller', desc: 'Anchored persistent wallet balances, quick stake amounts ($1.00 chips), and instant cash-out status within the ergonomic thumb zone.' },
+      { title: 'Microsecond State Transitions', desc: 'Animated live stake chips from active tracking to in-the-money victory state (+1.04 profit alerts) with zero visual stutter.' }
     ],
     metrics: [
-      { num: '+200', label: 'Master Components', sub: 'Variants & variables' },
-      { num: '75%', label: 'Faster Sprints', sub: 'Pre-built layout blocks' },
-      { num: '100%', label: 'Token Mapping', sub: 'Zero style drift' }
+      { num: '0.2s', label: 'Execution Speed', sub: 'One-tap direct staking' },
+      { num: '2 Modes', label: 'Dual Theme', sub: 'AMOLED Dark & Crisp Light' },
+      { num: '+38%', label: 'User Retention', sub: 'Direct spatial trading UX' }
     ],
-    tools: ['Figma', 'Tokens Studio', 'React Handoff', 'Design Systems', 'WCAG Auditing']
+    tools: ['Figma', 'Mobile App UX', 'Fintech / Web3', 'Micro-Interactions', 'Design System']
   },
   healthtech: {
-    id: 'healthtech',
-    category: 'Healthcare & Telehealth',
-    title: 'HealthTech Patient & Clinic Portal',
-    tagline: 'Accessible healthcare platform for chronic care patients to log biometric vitals and consult clinicians seamlessly.',
-    overview: 'An accessible, patient-friendly medical dashboard designed with strict WCAG 2.1 AAA accessibility guidelines, featuring high-legibility typography, clear vital trend charts, and secure telehealth messaging.',
-    problem: 'Elderly patients with chronic conditions found existing clinic portals intimidating, cluttered, and inaccessible on mobile devices.',
-    solution: 'Crafted a simplified, calming interface with large touch targets, colorblind-safe vital graphs, and single-focus onboarding flows.',
+    id: 'neuralhub',
+    category: 'AI Agent Ops & LLM Evaluation',
+    title: 'NeuralHub',
+    tagline: 'Enterprise platform for orchestrating autonomous AI agents, evaluating LLM benchmarks, and auditing token telemetry.',
+    overview: 'A comprehensive enterprise test bench and observability platform built for AI engineering teams. Unifies automated test suites across NLP, Computer Vision, and Speech agents with interactive prompt debug benches, model drift detection, prompt injection defense, and granular token spend telemetry.',
+    problem: 'Engineering teams deploying LLMs and multi-agent workflows faced critical blind spots: undetected model drift, prompt injection vulnerabilities, opaque failure states in restricted repositories, and runaway API bills without per-agent cost attribution.',
+    solution: 'Structured around Organize → Execute → Evaluate → Govern. Crafted a unified workbench allowing teams to configure multi-agent test harnesses, debug prompt interactions in a live sandbox with instant error feedback, track token burn down to the cent, and onboard engineers through integrated video guides.',
+    funnelSteps: ['Organize', 'Execute', 'Evaluate', 'Govern'],
     features: [
-      { title: 'Accessible Vitals Tracking', desc: 'High-contrast graphs for blood pressure, pulse, and glucose logs.' },
-      { title: 'One-Touch Telehealth Booking', desc: 'Straightforward appointment scheduling with automatic SMS reminders.' },
-      { title: 'WCAG 2.1 AAA Compliance', desc: 'Tested and certified for screen readers and high-contrast modes.' }
+      { title: 'Multi-Modal Test Suite Registry', desc: 'Designed structured suite management for Computer Vision, NLP, and Speech with dedicated agent cards (Bias Detection, Drift, Latency).' },
+      { title: 'Interactive Agent Execution Lab', desc: 'Created an intelligent prompt testing environment with role selectors (ML Engineer), model toggles (GPT-4o), and instant error triage.' },
+      { title: 'FinOps & Token Telemetry Dashboard', desc: 'Visualized total cost ($245.65), avg chat spend ($0.12), model price rankings, and cost-over-time trend lines.' },
+      { title: 'Automated Vulnerability & Drift Harness', desc: 'Integrated automated regression tests, prompt injection simulations, and real-time failure log inspectors with one-click retries.' },
+      { title: 'Integrated Learning & Video Knowledge Base', desc: 'Embedded curated video walkthroughs and interactive capability FAQs directly into the workspace to streamline team onboarding.' }
     ],
     metrics: [
-      { num: 'AAA', label: 'Accessibility', sub: 'WCAG 2.1 Certified' },
-      { num: '+52%', label: 'Engagement', sub: 'Active patient logging' },
-      { num: '100%', label: 'Privacy Compliant', sub: 'Secure patient consent' }
+      { num: '5+', label: 'Automated Audits', sub: 'Drift, Bias & Injections' },
+      { num: '$0.12', label: 'Avg Chat Cost', sub: 'Tracked per invocation' },
+      { num: '100%', label: 'Traceability', sub: 'Full telemetry & log audits' }
     ],
-    tools: ['Figma', 'WCAG 2.1 AAA', 'Responsive UI', 'Healthcare UX', 'Accessibility']
+    tools: ['Figma', 'AI / LLM UX', 'Enterprise SaaS', 'FinOps Telemetry', 'Design System']
   }
 };
 
@@ -1680,21 +1760,22 @@ function App() {
               </div>
             </div>
 
-            {/* Project 3: AeroSpace AI Copilot */}
-            <div className="brotype-project-card card-aerospace" onClick={() => setSelectedCaseStudy(caseStudyData.aerospace)}>
+            {/* Project 3: Engine Command Center */}
+            <div className="brotype-project-card card-engine" onClick={() => setSelectedCaseStudy(caseStudyData.engine)}>
               <div className="project-card-left">
-                <h3 className="project-card-title">AeroSpace AI</h3>
-                <p className="project-card-desc">Interactive conversational assistant for technicians to retrieve manuals and telemetry data using Natural Language processing.</p>
+                <h3 className="project-card-title">Engine Command Center</h3>
+                <p className="project-card-desc">Enterprise supply chain intelligence and predictive inventory dashboard. Unifies equipment hierarchies, distributor forecasting KPIs, rolling accuracy gauges, and automated part number conflict resolution.</p>
                 <div className="project-card-meta">
+                  <div className="meta-col">Enterprise SaaS</div>
+                  <div className="meta-col">Supply Chain</div>
+                  <div className="meta-col">Predictive KPIs</div>
                   <div className="meta-col">Figma</div>
-                  <div className="meta-col">Micro-interactions</div>
-                  <div className="meta-col">AI Interfaces</div>
                 </div>
                 <button
                   className="project-arrow-btn"
-                  onClick={(e) => { e.stopPropagation(); setSelectedCaseStudy(caseStudyData.aerospace); }}
-                  aria-label="View AeroSpace AI Case Study Details"
-                  title="View AeroSpace AI Case Study Details"
+                  onClick={(e) => { e.stopPropagation(); setSelectedCaseStudy(caseStudyData.engine); }}
+                  aria-label="View Engine Command Center Case Study Details"
+                  title="View Engine Command Center Case Study Details"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="7" y1="17" x2="17" y2="7"></line>
@@ -1702,39 +1783,31 @@ function App() {
                   </svg>
                 </button>
               </div>
-              <div className="project-card-right">
-                <div className="mockup-phone-wrapper">
-                  <div className="mockup-phone dark-theme">
-                    <div className="phone-screen">
-                      <div className="phone-header">
-                        <span className="phone-logo">AeroAI</span>
-                        <span className="phone-status">Online</span>
-                      </div>
-                      <div className="chat-bubble bot">Checking turbine telemetry data...</div>
-                      <div className="chat-bubble user">Status on Fan Blade 4?</div>
-                      <div className="chat-bubble bot highlighted">All sensors normal. Rotation speed: 2,400 RPM. Temp: 85°C.</div>
-                      <div className="chat-input-mock">Send query...</div>
-                    </div>
-                  </div>
-                </div>
+              <div className="project-card-right project-card-image-wrap">
+                <img
+                  src={engineCommandCenterImg}
+                  alt="Engine Command Center Supply Chain & Parts Forecasting"
+                  className="project-real-thumbnail"
+                />
               </div>
             </div>
 
-            {/* Project 4: OmniSystem Library */}
-            <div className="brotype-project-card card-omnisystem" onClick={() => setSelectedCaseStudy(caseStudyData.omnisystem)}>
+            {/* Project 4: BitPulse */}
+            <div className="brotype-project-card card-bitpulse" onClick={() => setSelectedCaseStudy(caseStudyData.bitpulse)}>
               <div className="project-card-left">
-                <h3 className="project-card-title">OmniSystem</h3>
-                <p className="project-card-desc">Scaling multi-brand enterprise platforms with a unified design system of over 200+ reusable Figma components and token architectures.</p>
+                <h3 className="project-card-title">BitPulse</h3>
+                <p className="project-card-desc">Real-time mobile crypto prediction and live multiplier trading interface. Features dynamic price-band multiplier grids, instant tactile staking, predictive time horizons, and a dual AMOLED dark/light design system.</p>
                 <div className="project-card-meta">
-                  <div className="meta-col">Figma</div>
-                  <div className="meta-col">Tokens Studio</div>
-                  <div className="meta-col">React Handoff</div>
+                  <div className="meta-col">Mobile Trading</div>
+                  <div className="meta-col">Fintech / Web3</div>
+                  <div className="meta-col">Dual Theme</div>
+                  <div className="meta-col">Micro-Interactions</div>
                 </div>
                 <button
                   className="project-arrow-btn"
-                  onClick={(e) => { e.stopPropagation(); setSelectedCaseStudy(caseStudyData.omnisystem); }}
-                  aria-label="View OmniSystem Case Study Details"
-                  title="View OmniSystem Case Study Details"
+                  onClick={(e) => { e.stopPropagation(); setSelectedCaseStudy(caseStudyData.bitpulse); }}
+                  aria-label="View BitPulse Case Study Details"
+                  title="View BitPulse Case Study Details"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="7" y1="17" x2="17" y2="7"></line>
@@ -1742,34 +1815,31 @@ function App() {
                   </svg>
                 </button>
               </div>
-              <div className="project-card-right">
-                <div className="mockup-ui tokens-mockup">
-                  <div className="tokens-grid">
-                    <div className="token-card-ui"><span className="color-preview blue"></span><code>--color-blue: #3b82..</code></div>
-                    <div className="token-card-ui"><span className="color-preview teal"></span><code>--color-teal: #1abc..</code></div>
-                    <div className="token-card-ui"><span className="color-preview yellow"></span><code>--color-yellow: #ffd0..</code></div>
-                    <div className="token-card-ui"><code>--spacing-md: 16px</code></div>
-                    <div className="token-card-ui"><code>--border-radius: 12px</code></div>
-                  </div>
-                </div>
+              <div className="project-card-right project-card-image-wrap">
+                <img
+                  src={bitpulseCryptoImg}
+                  alt="BitPulse Crypto Multiplier & Real-time Trading App"
+                  className="project-real-thumbnail"
+                />
               </div>
             </div>
 
-            {/* Project 5: HealthTech Patient Portal */}
-            <div className="brotype-project-card card-healthtech" onClick={() => setSelectedCaseStudy(caseStudyData.healthtech)}>
+            {/* Project 5: NeuralHub */}
+            <div className="brotype-project-card card-neuralhub" onClick={() => setSelectedCaseStudy(caseStudyData.neuralhub)}>
               <div className="project-card-left">
-                <h3 className="project-card-title">HealthTech</h3>
-                <p className="project-card-desc">A responsive health tracking portal designed with an emphasis on WCAG 2.1 accessibility standards and patient data privacy.</p>
+                <h3 className="project-card-title">NeuralHub</h3>
+                <p className="project-card-desc">Enterprise AI agent orchestration and LLM evaluation platform. Empowers machine learning teams to execute automated test suites, audit bias & prompt drift, benchmark model performance, and track token spend telemetry.</p>
                 <div className="project-card-meta">
-                  <div className="meta-col">Figma</div>
-                  <div className="meta-col">WCAG 2.1</div>
-                  <div className="meta-col">Responsive Design</div>
+                  <div className="meta-col">AI / LLM Ops</div>
+                  <div className="meta-col">Agent Evaluation</div>
+                  <div className="meta-col">FinOps Telemetry</div>
+                  <div className="meta-col">Enterprise UX</div>
                 </div>
                 <button
                   className="project-arrow-btn"
-                  onClick={(e) => { e.stopPropagation(); setSelectedCaseStudy(caseStudyData.healthtech); }}
-                  aria-label="View HealthTech Case Study Details"
-                  title="View HealthTech Case Study Details"
+                  onClick={(e) => { e.stopPropagation(); setSelectedCaseStudy(caseStudyData.neuralhub); }}
+                  aria-label="View NeuralHub Case Study Details"
+                  title="View NeuralHub Case Study Details"
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="7" y1="17" x2="17" y2="7"></line>
@@ -1777,20 +1847,12 @@ function App() {
                   </svg>
                 </button>
               </div>
-              <div className="project-card-right">
-                <div className="mockup-ui">
-                  <div className="mockup-header">
-                    <span className="dot red"></span><span className="dot yellow"></span><span className="dot green"></span>
-                    <div className="mockup-search">healthtech.portal.internal</div>
-                  </div>
-                  <div className="health-content-grid">
-                    <div className="health-sidebar-mock"></div>
-                    <div className="health-body-mock">
-                      <div className="health-stat-pill">Heart Rate: 72 bpm</div>
-                      <div className="health-chart-mock"></div>
-                    </div>
-                  </div>
-                </div>
+              <div className="project-card-right project-card-image-wrap">
+                <img
+                  src={neuralhubCaseStudyImg}
+                  alt="NeuralHub AI Agent Evaluation & LLM Testing Platform"
+                  className="project-real-thumbnail"
+                />
               </div>
             </div>
 
