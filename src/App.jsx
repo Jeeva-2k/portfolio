@@ -785,7 +785,12 @@ function CaseStudyModal({ caseStudy, onClose }) {
           
           {/* Header on Left above Image */}
           <div className="modal-left-hero-header">
-            <h2 className="modal-case-title">{caseStudy.title}</h2>
+            <div className="modal-left-hero-header-top">
+              <h2 className="modal-case-title">{caseStudy.title}</h2>
+              <button className="modal-mobile-close-btn" onClick={onClose} aria-label="Close Case Study" title="Close (Esc)">
+                <FiX />
+              </button>
+            </div>
             <p className="modal-case-tagline">{caseStudy.tagline}</p>
           </div>
 
@@ -915,6 +920,30 @@ function App() {
       return `${years} yr${years > 1 ? 's' : ''} ${months} mo${months > 1 ? 's' : ''}`;
     }
   };
+
+  // Always start from top/beginning of page on reload or refresh
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+
+    if (window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+
+    const resetScroll = () => {
+      window.scrollTo(0, 0);
+    };
+
+    window.addEventListener('beforeunload', resetScroll);
+    window.addEventListener('pagehide', resetScroll);
+
+    return () => {
+      window.removeEventListener('beforeunload', resetScroll);
+      window.removeEventListener('pagehide', resetScroll);
+    };
+  }, []);
 
   // Timezone Live Clock
   useEffect(() => {
